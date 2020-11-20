@@ -25,6 +25,8 @@ public class Main
 				.imageId("ami-00acfbfd2e91ae1b0")
 				.maxCount(1)
 				.minCount(1)
+				.keyName("RoysKey")
+				.securityGroupIds("sg-0210d89a3003c1298")
 				.userData(Base64.getEncoder().encodeToString("echo hello world > hello_world.txt\n".getBytes()))
 				.build());
 
