@@ -19,11 +19,11 @@ import java.util.stream.Collectors;
 
 public class Main
 {
-	private final static Ec2Client ec2 = Ec2Client.builder()
+	private final static Ec2Client ec2Client = Ec2Client.builder()
 			.region(Region.US_EAST_1)
 			.build();
 
-	private final static S3Client s3 = S3Client.builder()
+	private final static S3Client s3Client = S3Client.builder()
 			.region(Region.US_EAST_1)
 			.build();
 
@@ -37,7 +37,29 @@ public class Main
 
 	public static void main(String[] args)
 	{
-		RunInstancesResponse response = ec2.runInstances(RunInstancesRequest.builder()
+		RunInstancesResponse response = createInstance();
+
+		System.out.println(printInstancesState(ec2Client, response));
+
+		ec2Client.waiter().waitUntilInstanceRunning(DescribeInstancesRequest.builder()
+				.instanceIds(response.instances().stream()
+						.map(Instance::instanceId)
+						.toArray(String[]::new))
+				.build())
+				.matched()
+				.exception()
+				.ifPresent(System.out::println);
+
+		System.out.println(printInstancesState(ec2Client, response) + "\nBye Bye");
+
+
+//		String bucket = "bucket" + System.currentTimeMillis();
+//		createBucket(bucket, Region.US_EAST_1);
+	}
+
+	private static RunInstancesResponse createInstance()
+	{
+		RunInstancesResponse response = ec2Client.runInstances(RunInstancesRequest.builder()
 				.instanceType(InstanceType.T2_MICRO)
 				.imageId("ami-00acfbfd2e91ae1b0") // Ubuntu Server 20.04 LTS (HVM), SSD Volume Type
 //				.imageId("ami-076515f20540e6e0b") // requested by assignment 1 but not working
@@ -50,23 +72,7 @@ public class Main
 				                                             #!/bin/sh
 				                                             echo hello world > /home/ubuntu/hello_world.txt""".getBytes()))
 				.build());
-
-		System.out.println(printInstancesState(ec2, response));
-
-		ec2.waiter().waitUntilInstanceRunning(DescribeInstancesRequest.builder()
-				.instanceIds(response.instances().stream()
-						.map(Instance::instanceId)
-						.toArray(String[]::new))
-				.build())
-				.matched()
-				.exception()
-				.ifPresent(System.out::println);
-
-		System.out.println(printInstancesState(ec2, response) + "\nBye Bye");
-
-
-//		String bucket = "bucket" + System.currentTimeMillis();
-//		createBucket(bucket, Region.US_EAST_1);
+		return response;
 	}
 
 	private static Map<String, List<InstanceStateName>> printInstancesState(Ec2Client ec2, RunInstancesResponse response)
@@ -83,14 +89,14 @@ public class Main
 
 	private static void createBucket(String bucketName, Region region)
 	{
-		s3.createBucket(CreateBucketRequest.builder()
+		s3Client.createBucket(CreateBucketRequest.builder()
 				.bucket(bucketName)
 				.createBucketConfiguration(CreateBucketConfiguration.builder()
 						.locationConstraint(region.id())
 						.build())
 				.build());
 
-		s3.waiter().waitUntilBucketExists(HeadBucketRequest.builder()
+		s3Client.waiter().waitUntilBucketExists(HeadBucketRequest.builder()
 				.bucket(bucketName)
 				.build())
 				.matched()
