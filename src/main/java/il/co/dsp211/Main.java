@@ -8,6 +8,9 @@ import software.amazon.awssdk.services.s3.model.CreateBucketConfiguration;
 import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
 import software.amazon.awssdk.services.s3.model.HeadBucketRequest;
 import software.amazon.awssdk.services.sqs.SqsClient;
+import software.amazon.awssdk.services.sqs.model.CreateQueueRequest;
+import software.amazon.awssdk.services.sqs.model.GetQueueUrlRequest;
+import software.amazon.awssdk.services.sqs.model.GetQueueUrlResponse;
 
 import java.util.Base64;
 import java.util.List;
@@ -16,20 +19,24 @@ import java.util.stream.Collectors;
 
 public class Main
 {
+	private final static Ec2Client ec2 = Ec2Client.builder()
+			.region(Region.US_EAST_1)
+			.build();
+
 	private final static S3Client s3 = S3Client.builder()
 			.region(Region.US_EAST_1)
 			.build();
-		String queue_name = "queue" + System.currentTimeMillis();
-		SqsClient sqsClient = SqsClient.builder()
-			.region(Region.US_WEST_2)
-			.bEAST_1;
+
+	private final static SqsClient sqsClient = SqsClient.builder()
+		.region(Region.US_EAST_1)
+		.build();
+
+	String queueName = "queue" + System.currentTimeMillis();
+	String queueUrl = createQueue(sqsClient, queueName);
+
 
 	public static void main(String[] args)
 	{
-		Ec2Client ec2 = Ec2Client.builder()
-				.region(Region.US_EAST_1)
-				.build();
-
 		RunInstancesResponse response = ec2.runInstances(RunInstancesRequest.builder()
 				.instanceType(InstanceType.T2_MICRO)
 				.imageId("ami-00acfbfd2e91ae1b0") // Ubuntu Server 20.04 LTS (HVM), SSD Volume Type
@@ -92,5 +99,22 @@ public class Main
 		System.out.println(bucketName + " is ready");
 
 		System.out.println(bucketName);
+	}
+
+	public static String createQueue(SqsClient sqsClient, String queueName)
+	{
+		System.out.println("Create queue...");
+		CreateQueueRequest createQueueRequest = CreateQueueRequest.builder()
+				.queueName(queueName)
+				.build();
+
+		sqsClient.createQueue(createQueueRequest);
+
+		GetQueueUrlResponse getQueueUrlResponse = sqsClient.getQueueUrl(GetQueueUrlRequest.builder().
+				queueName(queueName).
+				build());
+
+		String queueUrl = getQueueUrlResponse.queueUrl();
+		return queueUrl;
 	}
 }
