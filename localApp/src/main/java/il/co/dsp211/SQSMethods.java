@@ -10,9 +10,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class SQSMethods {
-
-    private final static Region region = Region.US_EAST_1;
-
     public static String createQueue(SqsClient sqsClient, String queueName) {
         System.out.println("Creating queue...");
 
@@ -56,7 +53,7 @@ public class SQSMethods {
     }
 
     public static List<Message> receiveMessage(SqsClient sqsClient, String queueURL) {
-        System.out.println("Sending message...");
+        System.out.println("Receiving messages...");
         List<Message> messages = sqsClient.receiveMessage(ReceiveMessageRequest.builder()
                 .queueUrl(queueURL)
                 .build())
