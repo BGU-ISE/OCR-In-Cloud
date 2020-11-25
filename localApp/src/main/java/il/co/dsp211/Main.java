@@ -1,63 +1,52 @@
 package il.co.dsp211;
 
 import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.regions.internal.util.EC2MetadataUtils;
-import software.amazon.awssdk.services.ec2.Ec2Client;
-import software.amazon.awssdk.services.ec2.model.*;
 import software.amazon.awssdk.services.s3.S3Client;
-import software.amazon.awssdk.services.s3.model.CreateBucketConfiguration;
-import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
-import software.amazon.awssdk.services.s3.model.HeadBucketRequest;
-import software.amazon.awssdk.services.sqs.SqsClient;
-import software.amazon.awssdk.services.sqs.model.*;
 
-import java.io.File;
-import java.util.Base64;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
-public class Main {
-    private static final String queueName = "queue" + System.currentTimeMillis();
+public class Main
+{
+	private static final String queueName = "queue" + System.currentTimeMillis();
 
 
-    public static void main(String[] args) {
-        String inputImgFile, outputHtmlFile;
-        int workersFilesRatio;
-        boolean terminate;
+	public static void main(String[] args)
+	{
+		String inputImgFile, outputHtmlFile;
+		int workersFilesRatio;
+		boolean terminate;
 
-        if (args.length == 3) {
-            inputImgFile = args[0];
-            outputHtmlFile = args[1];
-            workersFilesRatio = Integer.parseInt(args[2]);
-            terminate = false;
-        }
-        else if (args.length == 4) {
-            inputImgFile = args[0];
-            outputHtmlFile = args[1];
-            workersFilesRatio = Integer.parseInt(args[2]);
-            terminate = true;
-        }
-        else {
-            throw new IllegalArgumentException("""
-                    Please provide valid input:
-                    java -jar localApp.jar <inputFileName> <outputFileName> <n> [terminate]""");
-        }
+		if (args.length == 3)
+		{
+			inputImgFile = args[0];
+			outputHtmlFile = args[1];
+			workersFilesRatio = Integer.parseInt(args[2]);
+			terminate = false;
+		} else if (args.length == 4)
+		{
+			inputImgFile = args[0];
+			outputHtmlFile = args[1];
+			workersFilesRatio = Integer.parseInt(args[2]);
+			terminate = true;
+		} else
+		{
+			throw new IllegalArgumentException("""
+			                                   Please provide valid input:
+			                                   java -jar localApp.jar <inputFileName> <outputFileName> <n> [terminate]""");
+		}
 
-        try (/*Ec2Client ec2Client = Ec2Client.builder()
+		try (/*Ec2Client ec2Client = Ec2Client.builder()
                 .region(Region.US_EAST_1)
                 .build();*/
-                S3Client s3Client = S3Client.builder()
-                        .region(Region.US_EAST_1)
-                        .build();
+				S3Client s3Client = S3Client.builder()
+						.region(Region.US_EAST_1)
+						.build()
                 /*SqsClient sqsClient = SqsClient.builder()
                         .region(Region.US_EAST_1)
-                        .build()*/) {
+                        .build()*/)
+		{
 
-            String bucketName = "bucky" + System.currentTimeMillis();
-            S3Methods.createBucket(s3Client, bucketName);
-            S3Methods.uploadFileToS3Bucket(s3Client, bucketName, "localApp/src/main/resources/text.images.txt");
+			String bucketName = "bucky" + System.currentTimeMillis();
+			S3Methods.createBucket(s3Client, bucketName);
+			S3Methods.uploadFileToS3Bucket(s3Client, bucketName, "localApp/src/main/resources/text.images.txt");
 
 
 //            RunInstancesResponse response = createInstance(ec2Client);
@@ -133,8 +122,8 @@ public class Main {
 
 //		String bucket = "bucket" + System.currentTimeMillis();
 //		createBucket(bucket, Region.US_EAST_1);
-            System.out.println("Closing resources...");
-        }
-        System.out.println("Bye bye");
-    }
+			System.out.println("Closing resources...");
+		}
+		System.out.println("Bye bye");
+	}
 }
