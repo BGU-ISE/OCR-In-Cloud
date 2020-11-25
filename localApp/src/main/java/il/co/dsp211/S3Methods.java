@@ -70,7 +70,7 @@ public class S3Methods
 
 	/**
 	 * Maybe more efficient on the network...
-	 * check about limit of 1000 objects...
+	 * check about limit of 1000 objects: no need to worry, {@link S3Client#listObjectsV2(ListObjectsV2Request)} returns up to 1000 objects
 	 * @param s3Client
 	 * @param bucketName
 	 */
