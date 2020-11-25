@@ -11,6 +11,7 @@ import software.amazon.awssdk.services.s3.model.HeadBucketRequest;
 import software.amazon.awssdk.services.sqs.SqsClient;
 import software.amazon.awssdk.services.sqs.model.*;
 
+import java.io.File;
 import java.util.Base64;
 import java.util.Collections;
 import java.util.List;
@@ -20,72 +21,102 @@ import java.util.stream.Collectors;
 public class Main {
     private static final String queueName = "queue" + System.currentTimeMillis();
 
+
     public static void main(String[] args) {
+        String inputImgFile, outputHtmlFile;
+        int workersFilesRatio;
+        boolean terminate;
+
+        if (args.length == 3) {
+            inputImgFile = args[0];
+            outputHtmlFile = args[1];
+            workersFilesRatio = Integer.parseInt(args[2]);
+            terminate = false;
+        }
+        else if (args.length == 4) {
+            inputImgFile = args[0];
+            outputHtmlFile = args[1];
+            workersFilesRatio = Integer.parseInt(args[2]);
+            terminate = true;
+        }
+        else {
+            throw new IllegalArgumentException("""
+                    Please provide valid input:
+                    java -jar localApp.jar <inputFileName> <outputFileName> <n> [terminate]""");
+        }
+
         try (/*Ec2Client ec2Client = Ec2Client.builder()
                 .region(Region.US_EAST_1)
-                .build();
-             S3Client s3Client = S3Client.builder()
-                     .region(Region.US_EAST_1)
-                     .build();*/
-                SqsClient sqsClient = SqsClient.builder()
+                .build();*/
+                S3Client s3Client = S3Client.builder()
                         .region(Region.US_EAST_1)
-                        .build()) {
+                        .build();
+                /*SqsClient sqsClient = SqsClient.builder()
+                        .region(Region.US_EAST_1)
+                        .build()*/) {
+
+            String bucketName = "bucky" + System.currentTimeMillis();
+            S3Methods.createBucket(s3Client, bucketName);
+            S3Methods.uploadFileToS3Bucket(s3Client, bucketName, "localApp/src/main/resources/text.images.txt");
+
+
 //            RunInstancesResponse response = createInstance(ec2Client);
 //            System.out.println(printInstancesState(ec2Client, response));
 
-            String queueUrl = createQueue(sqsClient, queueName);
-            sqsClient.sendMessage(SendMessageRequest.builder()
-                    .queueUrl(queueUrl)
-                    .messageBody("Hello World1")
-                    .build());
-            sqsClient.sendMessage(SendMessageRequest.builder()
-                    .queueUrl(queueUrl)
-                    .messageBody("Hello World2")
-                    .build());
-            sqsClient.sendMessage(SendMessageRequest.builder()
-                    .queueUrl(queueUrl)
-                    .messageBody("Hello World3")
-                    .build());
 
-            sqsClient.sendMessageBatch(SendMessageBatchRequest.builder()
-                    .queueUrl(queueUrl)
-                    .entries(SendMessageBatchRequestEntry.builder()
-                                    .messageBody("Hello World4")
-                                    .build(),
-                            SendMessageBatchRequestEntry.builder()
-                                    .messageBody("Hello World5")
-                                    .build(),
-                            SendMessageBatchRequestEntry.builder()
-                                    .messageBody("Hello World6")
-                                    .build())
-                    .build());
-
-            List<Message> messages = sqsClient.receiveMessage(ReceiveMessageRequest.builder()
-                    .queueUrl(queueUrl)
-                    .build())
-                    .messages();
-            System.out.println(messages.stream()
-                    .map(Message::body)
-                    .collect(Collectors.toList()));
-
-            messages = sqsClient.receiveMessage(ReceiveMessageRequest.builder()
-                    .queueUrl(queueUrl)
-                    .build())
-                    .messages();
-            System.out.println(messages.stream()
-                    .map(Message::body)
-                    .collect(Collectors.toList()));
-
-            sqsClient.deleteMessage(DeleteMessageRequest.builder()
-                    .queueUrl(queueUrl)
-                    .receiptHandle(messages.get(0).receiptHandle())
-                    .build());
-
-            GetQueueAttributesResponse response = sqsClient.getQueueAttributes(GetQueueAttributesRequest.builder()
-                    .queueUrl(queueUrl)
-                    .attributeNames(QueueAttributeName.ALL)
-                    .build());
-            System.out.println(response.attributes());
+//            String queueUrl = createQueue(sqsClient, queueName);
+//            sqsClient.sendMessage(SendMessageRequest.builder()
+//                    .queueUrl(queueUrl)
+//                    .messageBody("Hello World1")
+//                    .build());
+//            sqsClient.sendMessage(SendMessageRequest.builder()
+//                    .queueUrl(queueUrl)
+//                    .messageBody("Hello World2")
+//                    .build());
+//            sqsClient.sendMessage(SendMessageRequest.builder()
+//                    .queueUrl(queueUrl)
+//                    .messageBody("Hello World3")
+//                    .build());
+//
+//            sqsClient.sendMessageBatch(SendMessageBatchRequest.builder()
+//                    .queueUrl(queueUrl)
+//                    .entries(SendMessageBatchRequestEntry.builder()
+//                                    .messageBody("Hello World4")
+//                                    .build(),
+//                            SendMessageBatchRequestEntry.builder()
+//                                    .messageBody("Hello World5")
+//                                    .build(),
+//                            SendMessageBatchRequestEntry.builder()
+//                                    .messageBody("Hello World6")
+//                                    .build())
+//                    .build());
+//
+//            List<Message> messages = sqsClient.receiveMessage(ReceiveMessageRequest.builder()
+//                    .queueUrl(queueUrl)
+//                    .build())
+//                    .messages();
+//            System.out.println(messages.stream()
+//                    .map(Message::body)
+//                    .collect(Collectors.toList()));
+//
+//            messages = sqsClient.receiveMessage(ReceiveMessageRequest.builder()
+//                    .queueUrl(queueUrl)
+//                    .build())
+//                    .messages();
+//            System.out.println(messages.stream()
+//                    .map(Message::body)
+//                    .collect(Collectors.toList()));
+//
+//            sqsClient.deleteMessage(DeleteMessageRequest.builder()
+//                    .queueUrl(queueUrl)
+//                    .receiptHandle(messages.get(0).receiptHandle())
+//                    .build());
+//
+//            GetQueueAttributesResponse response = sqsClient.getQueueAttributes(GetQueueAttributesRequest.builder()
+//                    .queueUrl(queueUrl)
+//                    .attributeNames(QueueAttributeName.ALL)
+//                    .build());
+//            System.out.println(response.attributes());
 
 
 //            ec2Client.waiter().waitUntilInstanceRunning(DescribeInstancesRequest.builder()
@@ -105,48 +136,5 @@ public class Main {
             System.out.println("Closing resources...");
         }
         System.out.println("Bye bye");
-    }
-
-    private static RunInstancesResponse createInstance(Ec2Client ec2Client) {
-        return ec2Client.runInstances(RunInstancesRequest.builder()
-                .instanceType(InstanceType.T2_MICRO)
-                .imageId("ami-00acfbfd2e91ae1b0") // Ubuntu Server 20.04 LTS (HVM), SSD Volume Type
-//				.imageId("ami-076515f20540e6e0b") // requested by assignment 1 but not working
-//				.imageId("ami-04bf6dcdc9ab498ca") // Amazon Linux 2 AMI (HVM), SSD Volume Type
-                .maxCount(1)
-                .minCount(1)
-                .keyName("RoysKey")
-                .securityGroupIds("sg-0210d89a3003c1298")
-                .userData(Base64.getEncoder().encodeToString("""
-                        #!/bin/sh
-                        echo hello world > /home/ubuntu/hello_world.txt""".getBytes()))
-                .build());
-    }
-
-    private static Map<String, List<InstanceStateName>> printInstancesState(Ec2Client ec2, RunInstancesResponse response) {
-        return ec2.describeInstances(DescribeInstancesRequest.builder()
-                .instanceIds(response.instances().stream()
-                        .map(Instance::instanceId)
-                        .toArray(String[]::new))
-                .build())
-                .reservations().stream()
-                .flatMap(reservation -> reservation.instances().stream())
-                .collect(Collectors.groupingBy(Instance::instanceId, Collectors.mapping(instance -> instance.state().name(), Collectors.toList())));
-    }
-
-    public static String createQueue(SqsClient sqsClient, String queueName) {
-        System.out.println("Create queue...");
-
-        sqsClient.createQueue(CreateQueueRequest.builder()
-                .queueName(queueName)
-                .build());
-
-        GetQueueUrlResponse getQueueUrlResponse = sqsClient.getQueueUrl(GetQueueUrlRequest.builder()
-                .queueName(queueName)
-                .build());
-
-        System.out.println("queue created!!");
-
-        return getQueueUrlResponse.queueUrl();
     }
 }
