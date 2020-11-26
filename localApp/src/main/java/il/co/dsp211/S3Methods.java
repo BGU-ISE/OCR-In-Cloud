@@ -37,40 +37,6 @@ public class S3Methods implements SdkAutoCloseable
 		System.out.println("Bucket \"" + bucketName + "\" was created successfully");
 	}
 
-	public void deleteBucket()
-	{
-		System.out.println("Deleting bucket...");
-
-		// To delete a bucket, all the objects in the bucket must be deleted first
-		ListObjectsV2Request listObjectsV2Request = ListObjectsV2Request.builder()
-				.bucket(bucketName)
-				.build();
-		ListObjectsV2Response listObjectsV2Response;
-
-		do
-		{
-			listObjectsV2Response = s3Client.listObjectsV2(listObjectsV2Request);
-			for (S3Object s3Object : listObjectsV2Response.contents())
-			{
-				s3Client.deleteObject(DeleteObjectRequest.builder()
-						.bucket(bucketName)
-						.key(s3Object.key())
-						.build());
-			}
-
-			listObjectsV2Request = ListObjectsV2Request.builder()
-					.bucket(bucketName)
-					.continuationToken(listObjectsV2Response.nextContinuationToken())
-					.build();
-
-		} while (listObjectsV2Response.isTruncated());
-
-		s3Client.deleteBucket(DeleteBucketRequest.builder()
-				.bucket(bucketName)
-				.build());
-		System.out.println("Bucket \"" + bucketName + "\" was deleted successfully");
-	}
-
 	/**
 	 * Maybe more efficient on the network...<br>
 	 * check about limit of 1000 objects: no need to worry, {@link S3Client#listObjectsV2(ListObjectsV2Request)} returns up to 1000 objects
