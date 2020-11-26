@@ -5,8 +5,7 @@ import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.*;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
+import java.io.IOException;
 import java.nio.file.Path;
 
 public class S3Methods
@@ -21,7 +20,7 @@ public class S3Methods
 		s3Client.createBucket(CreateBucketRequest.builder()
 				.bucket(bucketName)
 				.createBucketConfiguration(CreateBucketConfiguration.builder()
-						.locationConstraint(region.id())
+//						.locationConstraint(region.id())
 						.build())
 				.build());
 
@@ -77,33 +76,43 @@ public class S3Methods
 	 */
 	public static void deleteBucketBatch(S3Client s3Client, String bucketName)
 	{
-		System.out.println("Deleting bucket...");
+		System.out.println("Deleting bucket Batch...");
 
-		for (ListObjectsV2Response listObjectsV2Response = s3Client.listObjectsV2(ListObjectsV2Request.builder()
+		// To delete a bucket, all the objects in the bucket must be deleted first
+		ListObjectsV2Request listObjectsV2Request = ListObjectsV2Request.builder()
 				.bucket(bucketName)
-				.build());
-		     listObjectsV2Response.isTruncated();
-		     listObjectsV2Response = s3Client.listObjectsV2(ListObjectsV2Request.builder()
-				     .bucket(bucketName)
-				     .continuationToken(listObjectsV2Response.nextContinuationToken())
-				     .build()))
-			s3Client.deleteObjects(DeleteObjectsRequest.builder()
-					.bucket(bucketName)
-					.delete(Delete.builder()
-							.quiet(true)
-							.objects(listObjectsV2Response.contents().stream()
-									.map(s3Object -> ObjectIdentifier.builder()
-											.key(s3Object.key())
-											.build())
-									.toArray(ObjectIdentifier[]::new))
-							.build())
-					.build());
+				.build();
+		ListObjectsV2Response listObjectsV2Response;
+
+		do
+		{
+			listObjectsV2Response = s3Client.listObjectsV2(listObjectsV2Request);
+			if (!listObjectsV2Response.contents().isEmpty())
+			{
+				s3Client.deleteObjects(DeleteObjectsRequest.builder()
+						.bucket(bucketName)
+						.delete(Delete.builder()
+								.quiet(true)
+								.objects(listObjectsV2Response.contents().stream()
+										.map(s3Object -> ObjectIdentifier.builder()
+												.key(s3Object.key())
+												.build())
+										.toArray(ObjectIdentifier[]::new))
+								.build())
+						.build());
+
+				listObjectsV2Request = ListObjectsV2Request.builder()
+						.bucket(bucketName)
+						.continuationToken(listObjectsV2Response.nextContinuationToken())
+						.build();
+			}
+		} while (listObjectsV2Response.isTruncated());
 
 		s3Client.deleteBucket(DeleteBucketRequest.builder()
 				.bucket(bucketName)
 				.build());
-		System.out.println("Bucket \"" + bucketName + "\" was deleted successfully");
 
+		System.out.println("Bucket \"" + bucketName + "\" was deleted successfully");
 	}
 
 	public static void uploadFileToS3Bucket(S3Client s3Client, String bucketName, String pathString)
@@ -115,17 +124,37 @@ public class S3Methods
 				.bucket(bucketName)
 				.key(path.getFileName().toString())
 				.build(), path);
+
 		System.out.println("File \"" + path.getFileName() + "\" was uploaded successfully");
 	}
 
-	public static void downloadFileFromS3Bucket(S3Client s3Client, String bucketName, String outputFileName)
+	public static void downloadFileFromS3Bucket(S3Client s3Client, String bucketName, String key, String outputPathString)
 	{
-		// TODO: not finished
-		ResponseInputStream<GetObjectResponse> s3ObjectResponse = s3Client.getObject(GetObjectRequest.builder()
-				.bucket(bucketName)
-				.key(outputFileName)
-				.build());
+		System.out.println("Getting object " + key + " and saving it to " + outputPathString + " ...");
 
-		BufferedReader reader = new BufferedReader(new InputStreamReader(s3ObjectResponse));
+		s3Client.getObject(GetObjectRequest.builder()
+						.bucket(bucketName)
+						.key(key)
+						.build(),
+				Path.of(outputPathString));
+
+		System.out.println("Object downloaded and saved");
+	}
+
+	public static String readObjectToString(S3Client s3Client, String bucketName, String key) throws IOException
+	{
+		System.out.println("Getting object " + key + "...");
+
+		try (ResponseInputStream<GetObjectResponse> responseInputStream = s3Client.getObject(GetObjectRequest.builder()
+				.bucket(bucketName)
+				.key(key)
+				.build()))
+		{
+			return new String(responseInputStream.readAllBytes());
+		}
+		finally
+		{
+			System.out.println("Object received");
+		}
 	}
 }

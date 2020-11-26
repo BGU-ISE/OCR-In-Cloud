@@ -3,35 +3,37 @@ package il.co.dsp211;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 
+import java.io.IOException;
+
 public class Main
 {
 	private static final String queueName = "queue" + System.currentTimeMillis();
 
 
-	public static void main(String[] args)
+	public static void main(String[] args) throws IOException
 	{
-		String inputImgFile, outputHtmlFile;
-		int workersFilesRatio;
-		boolean terminate;
-
-		if (args.length == 3)
-		{
-			inputImgFile = args[0];
-			outputHtmlFile = args[1];
-			workersFilesRatio = Integer.parseInt(args[2]);
-			terminate = false;
-		} else if (args.length == 4)
-		{
-			inputImgFile = args[0];
-			outputHtmlFile = args[1];
-			workersFilesRatio = Integer.parseInt(args[2]);
-			terminate = true;
-		} else
-		{
-			throw new IllegalArgumentException("""
-			                                   Please provide valid input:
-			                                   java -jar localApp.jar <inputFileName> <outputFileName> <n> [terminate]""");
-		}
+//		String inputImgFile, outputHtmlFile;
+//		int workersFilesRatio;
+//		boolean terminate;
+//
+//		if (args.length == 3)
+//		{
+//			inputImgFile = args[0];
+//			outputHtmlFile = args[1];
+//			workersFilesRatio = Integer.parseInt(args[2]);
+//			terminate = false;
+//		} else if (args.length == 4)
+//		{
+//			inputImgFile = args[0];
+//			outputHtmlFile = args[1];
+//			workersFilesRatio = Integer.parseInt(args[2]);
+//			terminate = true;
+//		} else
+//		{
+//			throw new IllegalArgumentException("""
+//			                                   Please provide valid input:
+//			                                   java -jar localApp.jar <inputFileName> <outputFileName> <n> [terminate]""");
+//		}
 
 		try (/*Ec2Client ec2Client = Ec2Client.builder()
                 .region(Region.US_EAST_1)
@@ -46,7 +48,10 @@ public class Main
 
 			String bucketName = "bucky" + System.currentTimeMillis();
 			S3Methods.createBucket(s3Client, bucketName);
-			S3Methods.uploadFileToS3Bucket(s3Client, bucketName, "localApp/src/main/resources/text.images.txt");
+			S3Methods.uploadFileToS3Bucket(s3Client, bucketName, "src/main/resources/text.images.txt");
+			S3Methods.downloadFileFromS3Bucket(s3Client, bucketName, "text.images.txt", "src/main/resources/text.images.output.txt");
+			System.out.println(S3Methods.readObjectToString(s3Client, bucketName, "text.images.txt"));
+			S3Methods.deleteBucketBatch(s3Client, bucketName);
 
 
 //            RunInstancesResponse response = createInstance(ec2Client);
