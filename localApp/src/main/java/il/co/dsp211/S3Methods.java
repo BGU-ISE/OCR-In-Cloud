@@ -1,18 +1,23 @@
 package il.co.dsp211;
 
 import software.amazon.awssdk.core.ResponseInputStream;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.*;
+import software.amazon.awssdk.utils.SdkAutoCloseable;
 
 import java.io.IOException;
 import java.nio.file.Path;
 
-public class S3Methods
+public class S3Methods implements SdkAutoCloseable
 {
+	//	private final static Region region = Region.US_EAST_1;
+	private final S3Client s3Client = S3Client.builder()
+			.region(Region.US_EAST_1)
+			.build();
+	private final String bucketName = "bucky" + System.currentTimeMillis();
 
-//	private final static Region region = Region.US_EAST_1;
-
-	public static void createBucket(S3Client s3Client, String bucketName)
+	public void createBucket()
 	{
 		System.out.println("Creating bucket...");
 
@@ -32,7 +37,7 @@ public class S3Methods
 		System.out.println("Bucket \"" + bucketName + "\" was created successfully");
 	}
 
-	public static void deleteBucket(S3Client s3Client, String bucketName)
+	public void deleteBucket()
 	{
 		System.out.println("Deleting bucket...");
 
@@ -70,10 +75,8 @@ public class S3Methods
 	 * Maybe more efficient on the network...<br>
 	 * check about limit of 1000 objects: no need to worry, {@link S3Client#listObjectsV2(ListObjectsV2Request)} returns up to 1000 objects
 	 *
-	 * @param s3Client
-	 * @param bucketName
 	 */
-	public static void deleteBucketBatch(S3Client s3Client, String bucketName)
+	public void deleteBucketBatch()
 	{
 		System.out.println("Deleting bucket Batch...");
 
@@ -114,7 +117,7 @@ public class S3Methods
 		System.out.println("Bucket \"" + bucketName + "\" was deleted successfully");
 	}
 
-	public static void uploadFileToS3Bucket(S3Client s3Client, String bucketName, String pathString)
+	public void uploadFileToS3Bucket(String pathString)
 	{
 		System.out.println("Upload file to S3 bucket...");
 
@@ -127,7 +130,7 @@ public class S3Methods
 		System.out.println("File \"" + path.getFileName() + "\" was uploaded successfully");
 	}
 
-	public static void downloadFileFromS3Bucket(S3Client s3Client, String bucketName, String key, String outputPathString)
+	public void downloadFileFromS3Bucket(String key, String outputPathString)
 	{
 		System.out.println("Getting object " + key + " and saving it to " + outputPathString + " ...");
 
@@ -140,7 +143,7 @@ public class S3Methods
 		System.out.println("Object downloaded and saved");
 	}
 
-	public static String readObjectToString(S3Client s3Client, String bucketName, String key) throws IOException
+	public String readObjectToString(String key) throws IOException
 	{
 		System.out.println("Getting object " + key + "...");
 
@@ -149,11 +152,18 @@ public class S3Methods
 				.key(key)
 				.build()))
 		{
+//			System.out.println(responseInputStream.response().contentEncoding());
 			return new String(responseInputStream.readAllBytes());
 		}
 		finally
 		{
 			System.out.println("Object received");
 		}
+	}
+
+	@Override
+	public void close()
+	{
+		s3Client.close();
 	}
 }

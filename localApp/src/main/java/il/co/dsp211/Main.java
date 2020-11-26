@@ -7,9 +7,6 @@ import java.io.IOException;
 
 public class Main
 {
-	private static final String queueName = "queue" + System.currentTimeMillis();
-
-
 	public static void main(String[] args) throws IOException
 	{
 //		String inputImgFile, outputHtmlFile;
@@ -35,23 +32,15 @@ public class Main
 //			                                   java -jar localApp.jar <inputFileName> <outputFileName> <n> [terminate]""");
 //		}
 
-		try (/*Ec2Client ec2Client = Ec2Client.builder()
-                .region(Region.US_EAST_1)
-                .build();*/
-				S3Client s3Client = S3Client.builder()
-						.region(Region.US_EAST_1)
-						.build()
-                /*SqsClient sqsClient = SqsClient.builder()
-                        .region(Region.US_EAST_1)
-                        .build()*/)
+		try (/*EC2Methods ec2Methods = new EC2Methods();*/
+				S3Methods s3Methods = new S3Methods();
+                /*SQSMethods sqsMethods = new SQSMethods()*/)
 		{
-
-			String bucketName = "bucky" + System.currentTimeMillis();
-			S3Methods.createBucket(s3Client, bucketName);
-			S3Methods.uploadFileToS3Bucket(s3Client, bucketName, "src/main/resources/text.images.txt");
-			S3Methods.downloadFileFromS3Bucket(s3Client, bucketName, "text.images.txt", "src/main/resources/text.images.output.txt");
-			System.out.println(S3Methods.readObjectToString(s3Client, bucketName, "text.images.txt"));
-			S3Methods.deleteBucketBatch(s3Client, bucketName);
+			s3Methods.createBucket();
+			s3Methods.uploadFileToS3Bucket("src/main/resources/text.images.txt");
+			s3Methods.downloadFileFromS3Bucket("text.images.txt", "src/main/resources/text.images.output.txt");
+			System.out.println(s3Methods.readObjectToString("text.images.txt"));
+			s3Methods.deleteBucketBatch();
 
 
 //            RunInstancesResponse response = createInstance(ec2Client);
