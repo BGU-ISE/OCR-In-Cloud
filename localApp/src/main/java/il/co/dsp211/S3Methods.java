@@ -69,8 +69,9 @@ public class S3Methods
 	}
 
 	/**
-	 * Maybe more efficient on the network...
+	 * Maybe more efficient on the network...<br>
 	 * check about limit of 1000 objects: no need to worry, {@link S3Client#listObjectsV2(ListObjectsV2Request)} returns up to 1000 objects
+	 *
 	 * @param s3Client
 	 * @param bucketName
 	 */
@@ -78,15 +79,14 @@ public class S3Methods
 	{
 		System.out.println("Deleting bucket...");
 
-		// To delete a bucket, all the objects in the bucket must be deleted first
-		ListObjectsV2Request listObjectsV2Request = ListObjectsV2Request.builder()
+		for (ListObjectsV2Response listObjectsV2Response = s3Client.listObjectsV2(ListObjectsV2Request.builder()
 				.bucket(bucketName)
-				.build();
-		ListObjectsV2Response listObjectsV2Response;
-
-		do
-		{
-			listObjectsV2Response = s3Client.listObjectsV2(listObjectsV2Request);
+				.build());
+		     listObjectsV2Response.isTruncated();
+		     listObjectsV2Response = s3Client.listObjectsV2(ListObjectsV2Request.builder()
+				     .bucket(bucketName)
+				     .continuationToken(listObjectsV2Response.nextContinuationToken())
+				     .build()))
 			s3Client.deleteObjects(DeleteObjectsRequest.builder()
 					.bucket(bucketName)
 					.delete(Delete.builder()
@@ -98,12 +98,6 @@ public class S3Methods
 									.toArray(ObjectIdentifier[]::new))
 							.build())
 					.build());
-
-			listObjectsV2Request = ListObjectsV2Request.builder()
-					.bucket(bucketName)
-					.continuationToken(listObjectsV2Response.nextContinuationToken())
-					.build();
-		} while (listObjectsV2Response.isTruncated());
 
 		s3Client.deleteBucket(DeleteBucketRequest.builder()
 				.bucket(bucketName)
