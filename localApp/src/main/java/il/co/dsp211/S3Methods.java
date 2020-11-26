@@ -11,7 +11,7 @@ import java.nio.file.Path;
 public class S3Methods
 {
 
-	private final static Region region = Region.US_EAST_1;
+//	private final static Region region = Region.US_EAST_1;
 
 	public static void createBucket(S3Client s3Client, String bucketName)
 	{
