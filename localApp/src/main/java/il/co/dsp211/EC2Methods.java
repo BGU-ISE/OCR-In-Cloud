@@ -4,10 +4,7 @@ import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.ec2.Ec2Client;
 import software.amazon.awssdk.services.ec2.model.*;
 
-import java.util.Base64;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class EC2Methods implements AutoCloseable
@@ -37,7 +34,13 @@ public class EC2Methods implements AutoCloseable
 
 	public void findOrCreateManager(String userData)
 	{
-		ec2Client.describeInstances(DescribeInstancesRequest.builder()
+		findManager().ifPresentOrElse(instance -> System.out.println("Manager already exists with id " + instance.instanceId() + " with state " + instance.state().name()),
+				() -> new EC2Methods().createManager(userData));
+	}
+
+	private Optional<Instance> findManager()
+	{
+		return ec2Client.describeInstances(DescribeInstancesRequest.builder()
 				.filters(Filter.builder()
 						.name("tag:" + managerProcessKey)
 						.values(managerProcessValue)
@@ -48,9 +51,7 @@ public class EC2Methods implements AutoCloseable
 				.flatMap(Collection::stream)
 				.filter(instance -> instance.state().name().equals(InstanceStateName.RUNNING) ||
 				                    instance.state().name().equals(InstanceStateName.PENDING))
-				.findAny()
-				.ifPresentOrElse(instance -> System.out.println("Manager already exists with id " + instance.instanceId() + " with state " + instance.state().name()),
-						() -> new EC2Methods().createManager(userData));
+				.findAny();
 	}
 
 	private void createManager(String userData)
@@ -75,6 +76,24 @@ public class EC2Methods implements AutoCloseable
 				.build());
 
 		System.out.println("Manager created successfully");
+	}
+
+	private void terminateManager()
+	{
+		System.out.println("Terminating manager if exists...");
+
+		findManager().ifPresent(instance ->
+		{
+			System.out.println("Found instance with id " + instance.instanceId());
+
+			ec2Client.terminateInstances(TerminateInstancesRequest.builder()
+					.instanceIds(instance.instanceId())
+					.build());
+
+			System.out.println("Instance " + instance.instanceId() + " terminated");
+		});
+
+		System.out.println("Done");
 	}
 
 	@Override
