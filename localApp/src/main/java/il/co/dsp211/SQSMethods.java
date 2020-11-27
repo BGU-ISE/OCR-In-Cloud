@@ -124,7 +124,4 @@ public class SQSMethods implements AutoCloseable
 	{
 		sqsClient.close();
 	}
-
-	private final AmazonSQSResponder sqsResponder =
-			AmazonSQSResponderClientBuilder.defaultClient();
 }
