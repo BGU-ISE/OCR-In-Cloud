@@ -6,6 +6,7 @@ import software.amazon.awssdk.services.sqs.model.*;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -14,6 +15,8 @@ public class SQSMethods implements AutoCloseable
 	private final SqsClient sqsClient = SqsClient.builder()
 			.region(Region.US_EAST_1)
 			.build();
+
+
 
 	public void deleteQueue(String queueURL)
 	{
@@ -55,6 +58,8 @@ public class SQSMethods implements AutoCloseable
 		System.out.println("Receiving messages...");
 		List<Message> messages = sqsClient.receiveMessage(ReceiveMessageRequest.builder()
 				.queueUrl(queueURL)
+				.maxNumberOfMessages(1)
+//				.waitTimeSeconds(20)
 				.build())
 				.messages();
 		System.out.println("Received " + messages.size() + " messages: " + messages.stream()
@@ -100,6 +105,7 @@ public class SQSMethods implements AutoCloseable
 
 		sqsClient.createQueue(CreateQueueRequest.builder()
 				.queueName(queueName)
+				.attributes(Map.of(QueueAttributeName.RECEIVE_MESSAGE_WAIT_TIME_SECONDS, "20"))
 				.build());
 
 		System.out.println("Queue \"" + queueName + "\" was created successfully");
@@ -124,7 +130,4 @@ public class SQSMethods implements AutoCloseable
 	{
 		sqsClient.close();
 	}
-
-	private final AmazonSQSResponder sqsResponder =
-			AmazonSQSResponderClientBuilder.defaultClient();
 }

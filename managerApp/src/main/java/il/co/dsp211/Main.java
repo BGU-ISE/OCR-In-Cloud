@@ -9,18 +9,11 @@ public class Main
 {
 	public static void main(String[] args)
 	{
-		/*
-		try (Ec2Client ec2Client = Ec2Client.builder()
-                .region(Region.US_EAST_1)
-                .build();
-			 S3Client s3Client = S3Client.builder()
-                     .region(Region.US_EAST_1)
-                     .build();
-			 SqsClient sqsClient = SqsClient.builder()
-						.region(Region.US_EAST_1)
-						.build()) {
+		try (/*EC2Methods ec2Methods = new EC2Methods();*/
+				/*S3Methods s3Methods = new S3Methods();*/
+				/*SQSMethods sqsMethods = new SQSMethods()*/)
+		{
 
 		}
-		 */
 	}
 }
