@@ -3,7 +3,6 @@ package il.co.dsp211;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.ec2.Ec2Client;
 import software.amazon.awssdk.services.ec2.model.*;
-import software.amazon.awssdk.utils.SdkAutoCloseable;
 
 import java.util.Base64;
 import java.util.Collection;
@@ -11,7 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public class EC2Methods implements SdkAutoCloseable
+public class EC2Methods implements AutoCloseable
 {
 	private final Ec2Client ec2Client = Ec2Client.builder()
 			.region(Region.US_EAST_1)

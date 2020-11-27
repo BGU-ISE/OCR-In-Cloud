@@ -3,14 +3,13 @@ package il.co.dsp211;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.sqs.SqsClient;
 import software.amazon.awssdk.services.sqs.model.*;
-import software.amazon.awssdk.utils.SdkAutoCloseable;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class SQSMethods implements SdkAutoCloseable
+public class SQSMethods implements AutoCloseable
 {
 	private final SqsClient sqsClient = SqsClient.builder()
 			.region(Region.US_EAST_1)

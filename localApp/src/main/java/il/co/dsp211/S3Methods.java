@@ -4,12 +4,11 @@ import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.*;
-import software.amazon.awssdk.utils.SdkAutoCloseable;
 
 import java.io.IOException;
 import java.nio.file.Path;
 
-public class S3Methods implements SdkAutoCloseable
+public class S3Methods implements AutoCloseable
 {
 	//	private final static Region region = Region.US_EAST_1;
 	private final S3Client s3Client = S3Client.builder()
