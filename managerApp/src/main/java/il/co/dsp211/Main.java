@@ -1,12 +1,11 @@
 package il.co.dsp211;
 
 import j2html.tags.ContainerTag;
-import software.amazon.awssdk.services.sqs.model.Message;
 
-import java.util.Deque;
-import java.util.Map;
-import java.util.Objects;
+import java.time.Instant;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedDeque;
 
 import static j2html.TagCreator.*;
 
@@ -18,8 +17,13 @@ import static j2html.TagCreator.*;
  */
 public class Main
 {
-	private final static Map<String /*local app <- manager URL*/, Pair<Long /*remaining tasks*/, Deque<ContainerTag>>> map = new ConcurrentHashMap<>();
+	private final static Map<String /*local app <- manager URL*/, Pair<Integer /*remaining tasks*/, Deque<ContainerTag>>> map = new ConcurrentHashMap<>();
 	private static String bucketName, localAppToManagerQueueName, managerAMI, workerAMI;
+
+	static
+	{
+		j2html.Config.indenter = (level, text) -> String.join("", Collections.nCopies(level, "\t")) + text;
+	}
 
 	public static void main(String[] args)
 	{
@@ -34,15 +38,15 @@ public class Main
 			String workerToManagerQueueURL = sqsMethods.createQueue("workerToManager" + System.currentTimeMillis());
 
 
+			map.put("<sqs url>", new Pair<>(5, new LinkedList<>()));
 			final Thread workerResultReceiverThread = new Thread(() ->
 			{
 				while (true)
 					sqsMethods.receiveMessage(workerToManagerQueueURL).stream()
-							.map(Message::body)
-							.map(body -> body.split(SQSMethods.getSPLITERATOR())/*gives string array with length 4*/)
+							.map(message -> message.body().split(SQSMethods.getSPLITERATOR())/*gives string array with length 4*/)
 							.peek(strings ->
 							{
-								final Pair<Long, Deque<ContainerTag>> value = map.get(strings[1]/*queue url*/);
+								final Pair<Integer, Deque<ContainerTag>> value = map.get(strings[1]/*queue url*/);
 								value.setKey(value.getKey() - 1);
 								value.getValue().addLast(
 										p(

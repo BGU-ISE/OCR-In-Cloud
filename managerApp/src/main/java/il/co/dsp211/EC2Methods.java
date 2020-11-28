@@ -33,8 +33,8 @@ public class EC2Methods implements AutoCloseable
 	}
 
 //	"""
-//					                       #!/bin/sh
-//					                       echo hello world > /home/ubuntu/hello_world.txt"""
+//	#!/bin/sh
+//	echo hello world > /home/ubuntu/hello_world.txt"""
 
 	public void findOrCreateInstancesByJob(int maxCount, Job job, String userData)
 	{
