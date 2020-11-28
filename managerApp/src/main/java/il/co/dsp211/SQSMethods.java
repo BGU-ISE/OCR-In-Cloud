@@ -11,9 +11,15 @@ import java.util.stream.Stream;
 
 public class SQSMethods implements AutoCloseable
 {
+	private static final String SPLITERATOR = "🤠";
 	private final SqsClient sqsClient = SqsClient.builder()
 			.region(Region.US_EAST_1)
 			.build();
+
+	public static String getSPLITERATOR()
+	{
+		return SPLITERATOR;
+	}
 
 	public void deleteQueue(String queueURL)
 	{
@@ -58,10 +64,17 @@ public class SQSMethods implements AutoCloseable
 	{
 		System.out.println("Receiving messages...");
 
-		List<Message> messages = sqsClient.receiveMessage(ReceiveMessageRequest.builder()
-				.queueUrl(queueURL)
-				.build())
-				.messages();
+		List<Message> messages;
+		do
+		{
+			messages = sqsClient.receiveMessage(ReceiveMessageRequest.builder()
+					.queueUrl(queueURL)
+					.maxNumberOfMessages(10)
+					.waitTimeSeconds(20)
+					.build())
+					.messages();
+		} while (messages.isEmpty());
+
 
 		System.out.println("Received " + messages.size() + " messages: " + messages.stream()
 				.map(Message::body)

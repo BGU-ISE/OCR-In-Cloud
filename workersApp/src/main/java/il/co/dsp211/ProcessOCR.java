@@ -14,21 +14,22 @@ public class ProcessOCR
 
 	static
 	{
+		// TODO change
         tesseract.setDatapath("");
 	}
 
 	public static String process(String url) throws TesseractException, IOException
 	{
 		// do OCR on image and save text
-		String recognized_text = tesseract.doOCR(ImageIO.read(new URL(url).openStream()));
+		String recognizedText = tesseract.doOCR(ImageIO.read(new URL(url).openStream()));
 
-		if (recognized_text.isEmpty())
+		if (recognizedText.isEmpty())
 		{
 			return "ERROR! failed to recognize text from URL: " + url;
 		}
 
-		System.out.println("URL: " + url + " | Result: " + recognized_text);
-		return recognized_text;
+		System.out.println("URL: " + url + " | Result: " + recognizedText);
+		return recognizedText;
 	}
 
 }
