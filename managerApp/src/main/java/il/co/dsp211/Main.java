@@ -2,10 +2,10 @@ package il.co.dsp211;
 
 import j2html.tags.ContainerTag;
 
-import java.time.Instant;
+import java.io.BufferedReader;
+import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedDeque;
 
 import static j2html.TagCreator.*;
 
@@ -17,9 +17,6 @@ import static j2html.TagCreator.*;
  */
 public class Main
 {
-	private final static Map<String /*local app <- manager URL*/, Pair<Integer /*remaining tasks*/, Deque<ContainerTag>>> map = new ConcurrentHashMap<>();
-	private static String bucketName, localAppToManagerQueueName, managerAMI, workerAMI;
-
 	static
 	{
 		j2html.Config.indenter = (level, text) -> String.join("", Collections.nCopies(level, "\t")) + text;
@@ -27,92 +24,139 @@ public class Main
 
 	public static void main(String[] args)
 	{
-		try (/*EC2Methods ec2Methods = new EC2Methods();*/
-				S3Methods s3Methods = new S3Methods();
-				SQSMethods sqsMethods = new SQSMethods())
+		final Map<String /*local app <- manager URL*/, Triple<String /*input/output bucket name*/, Long /*remaining tasks*/, Queue<ContainerTag>>> map = new ConcurrentHashMap<>();
+
+		final EC2Methods ec2Methods = new EC2Methods();
+		final SQSMethods sqsMethods = new SQSMethods();
+		final S3Methods s3Methods = new S3Methods();
+
+		final var box = new Object()
 		{
-			bucketName = args[0];
-			localAppToManagerQueueName = args[1];
-			managerAMI = args[2];
-			workerAMI = args[3];
-			String workerToManagerQueueURL = sqsMethods.createQueue("workerToManager" + System.currentTimeMillis());
+			boolean isTermination;
+		};
 
+		final String
+				workerToManagerQueueUrl = sqsMethods.createQueue("workerToManagerQueue"),
+				managerToWorkersQueueUrl = sqsMethods.createQueue("managerToWorkersQueue"),
+				localAppToManagerQueueUrl = sqsMethods.getQueueUrl("localAppToManagerQueue");
 
-			map.put("<sqs url>", new Pair<>(5, new LinkedList<>()));
-			final Thread workerResultReceiverThread = new Thread(() ->
+//			new task🤠<manager to local app queue url>🤠<input/output bucket name>🤠<file name>🤠<n>[🤠terminate] (local->manager)
+//			new image task🤠<manager to local app queue url>🤠<image url> (manager->worker)
+//			done OCR task🤠<manager to local app queue url>🤠<image url>🤠<text> (worker->manager)
+//			done task🤠<output file name> (manager->local)
+
+		new Thread(() ->
+		{
+			try (ec2Methods; sqsMethods; s3Methods)
 			{
-				while (true)
-					sqsMethods.receiveMessage(workerToManagerQueueURL).stream()
-							.map(message -> message.body().split(SQSMethods.getSPLITERATOR())/*gives string array with length 4*/)
-							.peek(strings ->
+				while (!(box.isTermination && map.isEmpty()))
+					sqsMethods.receiveMessage(workerToManagerQueueUrl).stream()
+							.map(message1 -> message1.body().split(SQSMethods.getSPLITERATOR())/*gives string array with length 4*/)
+							.peek(strings1 ->
 							{
-								final Pair<Integer, Deque<ContainerTag>> value = map.get(strings[1]/*queue url*/);
-								value.setKey(value.getKey() - 1);
-								value.getValue().addLast(
+								final Triple<String, Long, Queue<ContainerTag>> value = map.get(strings1[1]/*queue url*/);
+								value.setT2(value.getT2() - 1);
+								value.getT3().add(
 										p(
-												img().withSrc(strings[2]/*image url*/),
+												img().withSrc(strings1[2]/*image url*/),
 												br(),
-												text(strings[3]/*text*/)
+												text(strings1[3]/*text*/)
 										)
 								);
 							})
-							.filter(strings -> map.get(strings[1]/*queue url*/).getKey() == 0)
-							.forEach(strings ->
+							.filter(strings1 -> map.get(strings1[1]/*queue url*/).getT2() == 0)
+							.forEach(strings1 ->
 							{
-								final String
-										responseOutputBucketName = "outputBucket" + System.currentTimeMillis(),
-										outputHTMLFileName = "outputHTML.html";
-								s3Methods.uploadStringToS3Bucket(responseOutputBucketName, outputHTMLFileName,
+								final String outputHTMLFileName = "text.images.html";
+								final Triple<String, Long, Queue<ContainerTag>> data = map.get(strings1[1]/*queue url*/);
+								s3Methods.uploadStringToS3Bucket(data.getT1(), outputHTMLFileName,
 										html(
-												title("OCR"),
-												body(map.get(strings[1]/*queue url*/).getValue()
+												head(title("OCR")),
+												body(data.getT3()
 														.toArray(ContainerTag[]::new))
 										).renderFormatted()
 								);
-								sqsMethods.sendSingleMessage(strings[1]/*queue url*/, "done task" + SQSMethods.getSPLITERATOR() + responseOutputBucketName + SQSMethods.getSPLITERATOR() + outputHTMLFileName);
-								map.remove(strings[1]/*queue url*/);
+								sqsMethods.sendSingleMessage(strings1[1]/*queue url*/, "done task" + SQSMethods.getSPLITERATOR() + outputHTMLFileName);
+								map.remove(strings1[1]/*queue url*/);
 							});
-			});
+				ec2Methods.terminateInstancesByJob(EC2Methods.Job.WORKER);
+				sqsMethods.deleteQueue(managerToWorkersQueueUrl);
+				sqsMethods.deleteQueue(workerToManagerQueueUrl);
+				ec2Methods.terminateInstancesByJob(EC2Methods.Job.MANAGER); //גול עצמי
+				System.out.println("Cleaning resources...");
+			}
+			System.out.println("Exiting ManagerToWorkerThread and JVM process...");
+		}, "ManagerToWorkerThread").start();
 
-// new task🤠<manager to local app queue url>🤠<input bucket name>🤠<location of input file> (local->manager)
-// new image task🤠<manager to local app queue url>🤠<image url> (manager->worker)
-// done OCR task🤠<manager to local app queue url>🤠<image url>🤠<text> (worker->manager)
-// done task🤠<output bucket name>🤠<S3 location of HTML file> (manager->local)
+		while (!box.isTermination)
+			sqsMethods.receiveMessage(localAppToManagerQueueUrl).stream()
+					.map(message -> message.body().split(SQSMethods.getSPLITERATOR())/*gives string array with length 5/6*/)
+					.forEach(strings ->
+					{
+						box.isTermination = box.isTermination || (strings.length == 6 && strings[5].equals("terminate"));
 
-			workerResultReceiverThread.start();
-			String localAppToManagerQueueUrl = sqsMethods.getQueueUrl(localAppToManagerQueueName);
-		}
+						ec2Methods.findOrCreateInstancesByJob(args[0]/*worker AMI*/, Integer.parseInt(strings[4]), EC2Methods.Job.WORKER, "user data"/*TODO user data*/);
+
+						try (BufferedReader links = s3Methods.readObjectToString(strings[2], strings[3]))
+						{
+							map.put(strings[1],
+									new Triple<>(strings[2],
+											links.lines()
+													.peek(imageURL -> sqsMethods.sendSingleMessage(managerToWorkersQueueUrl,
+															"new image task" + SQSMethods.getSPLITERATOR() + strings[1] + SQSMethods.getSPLITERATOR() + imageURL))
+													.count(),
+											new LinkedList<>()));
+						}
+						catch (IOException e)
+						{
+							e.printStackTrace();
+						}
+					});
+		sqsMethods.deleteQueue(localAppToManagerQueueUrl);
+		System.out.println("Exiting main thread...");
 	}
 
-	private static class Pair<T1, T2>
+	private static class Triple<T1, T2, T3>
 	{
-		private T1 key;
-		private T2 value;
+		private T1 t1;
+		private T2 t2;
+		private T3 t3;
 
-		public Pair(T1 key, T2 value)
+		public Triple(T1 t1, T2 t2, T3 t3)
 		{
-			this.key = key;
-			this.value = value;
+			this.t1 = t1;
+			this.t2 = t2;
+			this.t3 = t3;
 		}
 
-		public T1 getKey()
+		public T1 getT1()
 		{
-			return key;
+			return t1;
 		}
 
-		public void setKey(T1 key)
+		public void setT1(T1 t1)
 		{
-			this.key = key;
+			this.t1 = t1;
 		}
 
-		public T2 getValue()
+		public T2 getT2()
 		{
-			return value;
+			return t2;
 		}
 
-		public void setValue(T2 value)
+		public void setT2(T2 t2)
 		{
-			this.value = value;
+			this.t2 = t2;
+		}
+
+		public T3 getT3()
+		{
+			return t3;
+		}
+
+		public void setT3(T3 t3)
+		{
+			this.t3 = t3;
 		}
 
 		@Override
@@ -120,25 +164,27 @@ public class Main
 		{
 			if (this == o)
 				return true;
-			if (!(o instanceof Pair))
+			if (!(o instanceof Triple))
 				return false;
-			Pair<?, ?> pair = (Pair<?, ?>) o;
-			return key.equals(pair.key) &&
-			       value.equals(pair.value);
+			Triple<?, ?, ?> triple = (Triple<?, ?, ?>) o;
+			return t1.equals(triple.t1) &&
+			       t2.equals(triple.t2) &&
+			       t3.equals(triple.t3);
 		}
 
 		@Override
 		public int hashCode()
 		{
-			return Objects.hash(key, value);
+			return Objects.hash(t1, t2, t3);
 		}
 
 		@Override
 		public String toString()
 		{
 			return "Pair{" +
-			       "key=" + key +
-			       ", value=" + value +
+			       "t1=" + t1 +
+			       ", t2=" + t2 +
+			       ", t3=" + t3 +
 			       '}';
 		}
 	}
