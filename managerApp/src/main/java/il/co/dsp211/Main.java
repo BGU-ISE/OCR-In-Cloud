@@ -40,7 +40,7 @@ public class Main
 				managerToWorkersQueueUrl = sqsMethods.createQueue("managerToWorkersQueue"),
 				localAppToManagerQueueUrl = sqsMethods.getQueueUrl("localAppToManagerQueue");
 
-//			new task🤠<manager to local app queue url>🤠<input/output bucket name>🤠<file name>🤠<n>[🤠terminate] (local->manager)
+//			new task🤠<manager to local app queue url>🤠<input/output bucket name>🤠< URLs file name>🤠<n>[🤠terminate] (local->manager)
 //			new image task🤠<manager to local app queue url>🤠<image url> (manager->worker)
 //			done OCR task🤠<manager to local app queue url>🤠<image url>🤠<text> (worker->manager)
 //			done task🤠<output file name> (manager->local)
@@ -51,24 +51,24 @@ public class Main
 			{
 				while (!(box.isTermination && map.isEmpty()))
 					sqsMethods.receiveMessage(workerToManagerQueueUrl).stream()
-							.map(message1 -> message1.body().split(SQSMethods.getSPLITERATOR())/*gives string array with length 4*/)
-							.peek(strings1 ->
+							.map(message -> message.body().split(SQSMethods.getSPLITERATOR())/*gives string array with length 4*/)
+							.peek(strings ->
 							{
-								final Triple<String, Long, Queue<ContainerTag>> value = map.get(strings1[1]/*queue url*/);
-								value.setT2(value.getT2() - 1);
+								final Triple<String, Long, Queue<ContainerTag>> value = map.get(strings[1]/*queue url*/);
+								--value.t2;
 								value.getT3().add(
 										p(
-												img().withSrc(strings1[2]/*image url*/),
+												img().withSrc(strings[2]/*image url*/),
 												br(),
-												text(strings1[3]/*text*/)
+												text(strings[3]/*text*/)
 										)
 								);
 							})
-							.filter(strings1 -> map.get(strings1[1]/*queue url*/).getT2() == 0)
-							.forEach(strings1 ->
+							.filter(strings -> map.get(strings[1]/*queue url*/).getT2() == 0)
+							.forEach(strings ->
 							{
-								final String outputHTMLFileName = "text.images.html";
-								final Triple<String, Long, Queue<ContainerTag>> data = map.get(strings1[1]/*queue url*/);
+								final String outputHTMLFileName = "text.images"+ System.currentTimeMillis() + ".html";
+								final Triple<String, Long, Queue<ContainerTag>> data = map.get(strings[1]/*queue url*/);
 								s3Methods.uploadStringToS3Bucket(data.getT1(), outputHTMLFileName,
 										html(
 												head(title("OCR")),
@@ -76,8 +76,8 @@ public class Main
 														.toArray(ContainerTag[]::new))
 										).renderFormatted()
 								);
-								sqsMethods.sendSingleMessage(strings1[1]/*queue url*/, "done task" + SQSMethods.getSPLITERATOR() + outputHTMLFileName);
-								map.remove(strings1[1]/*queue url*/);
+								sqsMethods.sendSingleMessage(strings[1]/*queue url*/, "done task" + SQSMethods.getSPLITERATOR() + outputHTMLFileName);
+								map.remove(strings[1]/*queue url*/);
 							});
 				ec2Methods.terminateInstancesByJob(EC2Methods.Job.WORKER);
 				sqsMethods.deleteQueue(managerToWorkersQueueUrl);
@@ -95,15 +95,15 @@ public class Main
 					{
 						box.isTermination = box.isTermination || (strings.length == 6 && strings[5].equals("terminate"));
 
-						ec2Methods.findOrCreateInstancesByJob(args[0]/*worker AMI*/, Integer.parseInt(strings[4]), EC2Methods.Job.WORKER, "user data"/*TODO user data*/);
+						ec2Methods.findOrCreateInstancesByJob(args[0]/*worker AMI*/, Integer.parseInt(strings[4]/*n*/), EC2Methods.Job.WORKER, "user data"/*TODO user data*/);
 
-						try (BufferedReader links = s3Methods.readObjectToString(strings[2], strings[3]))
+						try (BufferedReader links = s3Methods.readObjectToString(strings[2]/*input/output bucket name*/, strings[3]/*URLs file name*/))
 						{
-							map.put(strings[1],
-									new Triple<>(strings[2],
+							map.put(strings[1]/*queue url*/,
+									new Triple<>(strings[2]/*input/output bucket name*/,
 											links.lines()
-													.peek(imageURL -> sqsMethods.sendSingleMessage(managerToWorkersQueueUrl,
-															"new image task" + SQSMethods.getSPLITERATOR() + strings[1] + SQSMethods.getSPLITERATOR() + imageURL))
+													.peek(imageUrl -> sqsMethods.sendSingleMessage(managerToWorkersQueueUrl,
+															"new image task" + SQSMethods.getSPLITERATOR() + strings[1]/*queue url*/ + SQSMethods.getSPLITERATOR() + imageUrl))
 													.count(),
 											new LinkedList<>()));
 						}
