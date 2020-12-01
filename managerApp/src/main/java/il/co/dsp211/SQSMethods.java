@@ -100,7 +100,7 @@ public class SQSMethods implements AutoCloseable
 
 	public void sendMessageBatch(String queueURL, List<String> messages)
 	{
-		sendMessageBatch(queueURL, messages.toArray(new String[0]));
+		sendMessageBatch(queueURL, messages.toArray(String[]::new));
 	}
 
 	public void sendSingleMessage(String queueURL, String message)
