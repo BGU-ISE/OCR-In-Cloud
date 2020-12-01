@@ -16,6 +16,11 @@ public class S3Methods implements AutoCloseable
 			.build();
 	private final String bucketName = "bucky" + System.currentTimeMillis();
 
+	public String getBucketName()
+	{
+		return bucketName;
+	}
+
 	public void createBucket()
 	{
 		System.out.println("Creating bucket...");
@@ -82,7 +87,7 @@ public class S3Methods implements AutoCloseable
 		System.out.println("Bucket \"" + bucketName + "\" was deleted successfully");
 	}
 
-	public void uploadFileToS3Bucket(String pathString)
+	public String uploadFileToS3Bucket(String pathString)
 	{
 		System.out.println("Upload file to S3 bucket...");
 
@@ -93,17 +98,18 @@ public class S3Methods implements AutoCloseable
 				.build(), path);
 
 		System.out.println("File \"" + path.getFileName() + "\" was uploaded successfully");
+		return path.getFileName().toString();
 	}
 
-	public void downloadFileFromS3Bucket(String key, String outputPathString)
+	public void downloadFileFromS3Bucket(String key/*, String outputPathString*/)
 	{
-		System.out.println("Getting object " + key + " and saving it to " + outputPathString + " ...");
+		System.out.println("Getting object " + key + " and saving it to ./" + key/*outputPathString*/ + " ...");
 
 		s3Client.getObject(GetObjectRequest.builder()
 						.bucket(bucketName)
 						.key(key)
 						.build(),
-				Path.of(outputPathString));
+				Path.of(key/*outputPathString*/));
 
 		System.out.println("Object downloaded and saved");
 	}

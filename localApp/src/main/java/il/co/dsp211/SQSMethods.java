@@ -6,14 +6,21 @@ import software.amazon.awssdk.services.sqs.model.*;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class SQSMethods implements AutoCloseable
 {
+	private static final String SPLITERATOR = "🤠";
 	private final SqsClient sqsClient = SqsClient.builder()
 			.region(Region.US_EAST_1)
 			.build();
+
+	public static String getSPLITERATOR()
+	{
+		return SPLITERATOR;
+	}
 
 	public void deleteQueue(String queueURL)
 	{
@@ -54,7 +61,7 @@ public class SQSMethods implements AutoCloseable
 		System.out.println("Message deleted");
 	}
 
-	public List<Message> receiveMessage(String queueURL)
+	public String receiveMessage(String queueURL)
 	{
 		System.out.println("Receiving messages...");
 
@@ -72,7 +79,7 @@ public class SQSMethods implements AutoCloseable
 		System.out.println("Received " + messages.size() + " messages: " + messages.stream()
 				.map(Message::body)
 				.collect(Collectors.toList()));
-		return messages;
+		return messages.get(0).body();
 	}
 
 	public void sendMessageBatch(String queueURL, String... messages)
@@ -112,25 +119,33 @@ public class SQSMethods implements AutoCloseable
 	{
 		System.out.println("Creating queue...");
 
-		sqsClient.createQueue(CreateQueueRequest.builder()
+		final String queueUrl = sqsClient.createQueue(CreateQueueRequest.builder()
 				.queueName(queueName)
-				.build());
+				.build())
+				.queueUrl();
 
 		System.out.println("Queue \"" + queueName + "\" was created successfully");
-
-		return getQueueUrl(queueName);
+		return queueUrl;
 	}
 
-	public String getQueueUrl(String queueName)
+	public Optional<String> getQueueUrl(String queueName)
 	{
 		System.out.println("Getting queue URL for queue " + queueName + "...");
 
-		GetQueueUrlResponse getQueueUrlResponse = sqsClient.getQueueUrl(GetQueueUrlRequest.builder()
-				.queueName(queueName)
-				.build());
+		try
+		{
+			GetQueueUrlResponse getQueueUrlResponse = sqsClient.getQueueUrl(GetQueueUrlRequest.builder()
+					.queueName(queueName)
+					.build());
 
-		System.out.println("Got URL");
-		return getQueueUrlResponse.queueUrl();
+			System.out.println("Got URL");
+			return Optional.of(getQueueUrlResponse.queueUrl());
+		}
+		catch (QueueDoesNotExistException queueDoesNotExistException)
+		{
+			System.out.println("Queue doesn't exist");
+			return Optional.empty();
+		}
 	}
 
 	@Override

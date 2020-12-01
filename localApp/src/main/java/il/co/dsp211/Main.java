@@ -1,10 +1,19 @@
 package il.co.dsp211;
 
-import java.io.IOException;
+//TODO: change the manager by the following changes:
+// SQSMethods: "createQueue" , "getQueueUrl"
 
 public class Main
 {
-	public static void main(String[] args) throws IOException
+	/**
+	 * args[0]->input image file path
+	 * args[1]->output file path
+	 * args[2]->number of workers needed
+	 * args[3]->(optional) must be equals to "terminate"
+	 *
+	 * @param args
+	 */
+	public static void main(String[] args)
 	{
 //		String inputImgFile, outputHtmlFile;
 //		int workersFilesRatio;
@@ -29,90 +38,30 @@ public class Main
 //			                                   java -jar localApp.jar <inputFileName> <outputFileName> <n> [terminate]""");
 //		}
 
-		try (/*EC2Methods ec2Methods = new EC2Methods();*/
-				S3Methods s3Methods = new S3Methods();
-				/*SQSMethods sqsMethods = new SQSMethods()*/)
+		try (EC2Methods ec2Methods = new EC2Methods();
+		     S3Methods s3Methods = new S3Methods();
+		     SQSMethods sqsMethods = new SQSMethods())
 		{
+			final String
+					localAppToManagerQueueUrl = sqsMethods.createQueue("localAppToManagerQueue"),
+					managerToLocalAppQueueUrl = sqsMethods.createQueue("managerToLocalAppQueue" + System.currentTimeMillis());
+			ec2Methods.findOrCreateInstancesByJob(""/*TODO*/, 1, EC2Methods.Job.MANAGER, ""/*TODO*/);
 			s3Methods.createBucket();
-			s3Methods.uploadFileToS3Bucket("src/main/resources/text.images.txt");
-			s3Methods.downloadFileFromS3Bucket("text.images.txt", "src/main/resources/text.images.output.txt");
-			System.out.println(s3Methods.readObjectToString("text.images.txt"));
+//			new task🤠<manager to local app queue url>🤠<input/output bucket name>🤠< URLs file name>🤠<n>[🤠terminate]
+			sqsMethods.sendSingleMessage(localAppToManagerQueueUrl,
+					"new task" + SQSMethods.getSPLITERATOR() +
+					managerToLocalAppQueueUrl + SQSMethods.getSPLITERATOR() +
+					s3Methods.getBucketName() + SQSMethods.getSPLITERATOR() +
+					s3Methods.uploadFileToS3Bucket(args[0]) + SQSMethods.getSPLITERATOR() +
+					args[2] + SQSMethods.getSPLITERATOR() +
+					(args.length == 4 && args[3].equals("terminate") ? args[3] : ""));
+
+//			done task🤠<output file name>
+			s3Methods.downloadFileFromS3Bucket(sqsMethods.receiveMessage(managerToLocalAppQueueUrl)
+					.split(SQSMethods.getSPLITERATOR())[1]);
+
 			s3Methods.deleteBucketBatch();
-
-
-//            RunInstancesResponse response = createInstance(ec2Client);
-//            System.out.println(printInstancesState(ec2Client, response));
-
-
-//            String queueUrl = createQueue(sqsClient, queueName);
-//            sqsClient.sendMessage(SendMessageRequest.builder()
-//                    .queueUrl(queueUrl)
-//                    .messageBody("Hello World1")
-//                    .build());
-//            sqsClient.sendMessage(SendMessageRequest.builder()
-//                    .queueUrl(queueUrl)
-//                    .messageBody("Hello World2")
-//                    .build());
-//            sqsClient.sendMessage(SendMessageRequest.builder()
-//                    .queueUrl(queueUrl)
-//                    .messageBody("Hello World3")
-//                    .build());
-//
-//            sqsClient.sendMessageBatch(SendMessageBatchRequest.builder()
-//                    .queueUrl(queueUrl)
-//                    .entries(SendMessageBatchRequestEntry.builder()
-//                                    .messageBody("Hello World4")
-//                                    .build(),
-//                            SendMessageBatchRequestEntry.builder()
-//                                    .messageBody("Hello World5")
-//                                    .build(),
-//                            SendMessageBatchRequestEntry.builder()
-//                                    .messageBody("Hello World6")
-//                                    .build())
-//                    .build());
-//
-//            List<Message> messages = sqsClient.receiveMessage(ReceiveMessageRequest.builder()
-//                    .queueUrl(queueUrl)
-//                    .build())
-//                    .messages();
-//            System.out.println(messages.stream()
-//                    .map(Message::body)
-//                    .collect(Collectors.toList()));
-//
-//            messages = sqsClient.receiveMessage(ReceiveMessageRequest.builder()
-//                    .queueUrl(queueUrl)
-//                    .build())
-//                    .messages();
-//            System.out.println(messages.stream()
-//                    .map(Message::body)
-//                    .collect(Collectors.toList()));
-//
-//            sqsClient.deleteMessage(DeleteMessageRequest.builder()
-//                    .queueUrl(queueUrl)
-//                    .receiptHandle(messages.get(0).receiptHandle())
-//                    .build());
-//
-//            GetQueueAttributesResponse response = sqsClient.getQueueAttributes(GetQueueAttributesRequest.builder()
-//                    .queueUrl(queueUrl)
-//                    .attributeNames(QueueAttributeName.ALL)
-//                    .build());
-//            System.out.println(response.attributes());
-
-
-//            ec2Client.waiter().waitUntilInstanceRunning(DescribeInstancesRequest.builder()
-//                    .instanceIds(response.instances().stream()
-//                            .map(Instance::instanceId)
-//                            .toArray(String[]::new))
-//                    .build())
-//                    .matched()
-//                    .exception()
-//                    .ifPresent(System.out::println);
-//
-//            System.out.println(printInstancesState(ec2Client, response) + "\nBye Bye");
-
-
-//		String bucket = "bucket" + System.currentTimeMillis();
-//		createBucket(bucket, Region.US_EAST_1);
+			sqsMethods.deleteQueue(managerToLocalAppQueueUrl);
 			System.out.println("Closing resources...");
 		}
 		System.out.println("Bye bye");

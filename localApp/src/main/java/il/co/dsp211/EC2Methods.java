@@ -33,12 +33,12 @@ public class EC2Methods implements AutoCloseable
 	}
 
 //	"""
-//					                       #!/bin/sh
-//					                       echo hello world > /home/ubuntu/hello_world.txt"""
+//	#!/bin/sh
+//	echo hello world > /home/ubuntu/hello_world.txt"""
 
-	public void findOrCreateInstancesByJob(int maxCount, Job job, String userData)
+	public void findOrCreateInstancesByJob(String imageId, int maxCount, Job job, String userData)
 	{
-		createInstanceByJob(maxCount - (int) findInstanceByJob(job).count(), job, userData);
+		createInstanceByJob(imageId, maxCount - (int) findInstanceByJob(job).count(), job, userData);
 	}
 
 	private Stream<Instance> findInstanceByJob(Job job)
@@ -56,7 +56,7 @@ public class EC2Methods implements AutoCloseable
 				                    instance.state().name().equals(InstanceStateName.PENDING));
 	}
 
-	private void createInstanceByJob(int maxCount, Job job, String userData)
+	private void createInstanceByJob(String imageId, int maxCount, Job job, String userData)
 	{
 		if (maxCount == 0)
 		{
@@ -68,7 +68,8 @@ public class EC2Methods implements AutoCloseable
 
 		ec2Client.runInstances(RunInstancesRequest.builder()
 				.instanceType(InstanceType.T2_MICRO)
-				.imageId("ami-00acfbfd2e91ae1b0") // Ubuntu Server 20.04 LTS (HVM), SSD Volume Type
+				.imageId(imageId)
+//				.imageId("ami-00acfbfd2e91ae1b0") // Ubuntu Server 20.04 LTS (HVM), SSD Volume Type
 				.minCount(1)
 				.maxCount(maxCount)
 				.keyName("RoysKey")
@@ -86,10 +87,9 @@ public class EC2Methods implements AutoCloseable
 		System.out.println("Manager created successfully");
 	}
 
-	private void terminateInstancesByJob(Job job)
+	public void terminateInstancesByJob(Job job)
 	{
 		System.out.println("Terminating manager if exists...");
-
 
 		final List<String> instanceIds = findInstanceByJob(job)
 				.map(Instance::instanceId)

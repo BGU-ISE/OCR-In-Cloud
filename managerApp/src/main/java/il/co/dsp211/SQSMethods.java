@@ -6,6 +6,7 @@ import software.amazon.awssdk.services.sqs.model.*;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -125,25 +126,33 @@ public class SQSMethods implements AutoCloseable
 	{
 		System.out.println("Creating queue...");
 
-		sqsClient.createQueue(CreateQueueRequest.builder()
+		final String queueUrl = sqsClient.createQueue(CreateQueueRequest.builder()
 				.queueName(queueName)
-				.build());
+				.build())
+				.queueUrl();
 
 		System.out.println("Queue \"" + queueName + "\" was created successfully");
-
-		return getQueueUrl(queueName);
+		return queueUrl;
 	}
 
-	public String getQueueUrl(String queueName)
+	public Optional<String> getQueueUrl(String queueName)
 	{
 		System.out.println("Getting queue URL for queue " + queueName + "...");
 
-		GetQueueUrlResponse getQueueUrlResponse = sqsClient.getQueueUrl(GetQueueUrlRequest.builder()
-				.queueName(queueName)
-				.build());
+		try
+		{
+			GetQueueUrlResponse getQueueUrlResponse = sqsClient.getQueueUrl(GetQueueUrlRequest.builder()
+					.queueName(queueName)
+					.build());
 
-		System.out.println("Got URL");
-		return getQueueUrlResponse.queueUrl();
+			System.out.println("Got URL");
+			return Optional.of(getQueueUrlResponse.queueUrl());
+		}
+		catch (QueueDoesNotExistException queueDoesNotExistException)
+		{
+			System.out.println("Queue doesn't exist");
+			return Optional.empty();
+		}
 	}
 
 	@Override

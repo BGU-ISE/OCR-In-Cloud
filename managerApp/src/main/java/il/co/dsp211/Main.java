@@ -38,7 +38,7 @@ public class Main
 
 		final String
 				managerToWorkersQueueUrl = sqsMethods.createQueue("managerToWorkersQueue"),
-				localAppToManagerQueueUrl = sqsMethods.getQueueUrl("localAppToManagerQueue");
+				localAppToManagerQueueUrl = sqsMethods.createQueue("localAppToManagerQueue");
 
 //			new task🤠<manager to local app queue url>🤠<input/output bucket name>🤠< URLs file name>🤠<n>[🤠terminate] (local->manager)
 //			new image task🤠<manager to local app queue url>🤠<image url> (manager->worker)

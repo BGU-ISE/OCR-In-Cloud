@@ -38,7 +38,7 @@ public class EC2Methods implements AutoCloseable
 
 	public void findOrCreateInstancesByJob(String imageId, int maxCount, Job job, String userData)
 	{
-		createInstanceByJob(imageId, maxCount - (int) findInstanceByJob(job).count(), job, userData);
+		createInstanceByJob(imageId, Math.min(maxCount, 20 - 1 - 1) - (int) findInstanceByJob(job).count(), job, userData);
 	}
 
 	private Stream<Instance> findInstanceByJob(Job job)
@@ -58,7 +58,7 @@ public class EC2Methods implements AutoCloseable
 
 	private void createInstanceByJob(String imageId, int maxCount, Job job, String userData)
 	{
-		if (maxCount == 0)
+		if (maxCount <= 0)
 		{
 			System.out.println("No need to create instances with job " + job);
 			return;
