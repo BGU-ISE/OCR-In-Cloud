@@ -17,13 +17,13 @@ public class Main {
                 System.out.println("Get SQS message...");
                 Message message = sqsMethods.receiveMessage(mangagerToWorkerQueueUrl);
                 //new image task🤠<manager to local app queue url>🤠<image url> (manager->worker)
-                String imgURL = message.body().split(SPLITERATOR)[2];
+                String[] split = message.body().split(SPLITERATOR);
                 // Assumption: The message contains only the img url
                 // Apply OCR on image
                 System.out.println("Running Tesseract on the image URL...");
                 String outputOCR;
                 try {
-                    outputOCR = ProcessOCR.process(imgURL);
+                    outputOCR = ProcessOCR.process(split[2]);
                 } catch (TesseractException | IOException e) {
                     // Send error message.
                     e.printStackTrace();
@@ -31,7 +31,11 @@ public class Main {
                 }
                 // Create message and send in to the manager using the SQS queue
                 //done OCR task🤠<manager to local app queue url>🤠<image url>🤠<text> (worker->manager)
-                sqsMethods.sendSingleMessage(workerToManagerQueueUrl, imgURL + SPLITERATOR + outputOCR);
+                sqsMethods.sendSingleMessage(workerToManagerQueueUrl,
+                        "done OCR task" + SPLITERATOR +
+                                split[1] + SPLITERATOR +
+                                split[2] + SPLITERATOR +
+                                outputOCR);
                 // Delete message from the SQS queue because the task is finished
                 sqsMethods.deleteMessage(mangagerToWorkerQueueUrl, message);
             }
