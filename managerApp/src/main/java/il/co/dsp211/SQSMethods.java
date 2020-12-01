@@ -34,6 +34,9 @@ public class SQSMethods implements AutoCloseable
 
 	public void deleteMessageBatch(String queueURL, List<Message> messages)
 	{
+		if (messages.isEmpty())
+			return;
+
 		System.out.println("Deleting messages " + messages.stream()
 				.map(Message::body)
 				.collect(Collectors.toList()) + "\"...");
@@ -65,15 +68,15 @@ public class SQSMethods implements AutoCloseable
 		System.out.println("Receiving messages...");
 
 		List<Message> messages;
-		do
-		{
-			messages = sqsClient.receiveMessage(ReceiveMessageRequest.builder()
-					.queueUrl(queueURL)
-					.maxNumberOfMessages(10)
-					.waitTimeSeconds(20)
-					.build())
-					.messages();
-		} while (messages.isEmpty());
+//		do
+//		{
+		messages = sqsClient.receiveMessage(ReceiveMessageRequest.builder()
+				.queueUrl(queueURL)
+				.maxNumberOfMessages(10)
+				.waitTimeSeconds(20)
+				.build())
+				.messages();
+//		} while (messages.isEmpty());
 
 
 		System.out.println("Received " + messages.size() + " messages: " + messages.stream()
@@ -84,6 +87,9 @@ public class SQSMethods implements AutoCloseable
 
 	public void sendMessageBatch(String queueURL, String... messages)
 	{
+		if (messages.length == 0)
+			return;
+
 		System.out.println("Sending message...");
 
 		sqsClient.sendMessageBatch(SendMessageBatchRequest.builder()

@@ -1,6 +1,7 @@
 package il.co.dsp211;
 
 import j2html.tags.ContainerTag;
+import software.amazon.awssdk.services.sqs.model.Message;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -36,7 +37,6 @@ public class Main
 		};
 
 		final String
-				workerToManagerQueueUrl = sqsMethods.createQueue("workerToManagerQueue"),
 				managerToWorkersQueueUrl = sqsMethods.createQueue("managerToWorkersQueue"),
 				localAppToManagerQueueUrl = sqsMethods.getQueueUrl("localAppToManagerQueue");
 
@@ -49,8 +49,11 @@ public class Main
 		{
 			try (ec2Methods; sqsMethods; s3Methods)
 			{
+				final String workerToManagerQueueUrl = sqsMethods.createQueue("workerToManagerQueue");
 				while (!(box.isTermination && map.isEmpty()))
-					sqsMethods.receiveMessage(workerToManagerQueueUrl).stream()
+				{
+					final List<Message> messages = sqsMethods.receiveMessage(workerToManagerQueueUrl);
+					messages.stream()
 							.map(message -> message.body().split(SQSMethods.getSPLITERATOR())/*gives string array with length 4*/)
 							.peek(strings ->
 							{
@@ -79,17 +82,21 @@ public class Main
 								sqsMethods.sendSingleMessage(strings[1]/*queue url*/, "done task" + SQSMethods.getSPLITERATOR() + outputHTMLFileName);
 								map.remove(strings[1]/*queue url*/);
 							});
+					sqsMethods.deleteMessageBatch(workerToManagerQueueUrl, messages);
+				}
 				ec2Methods.terminateInstancesByJob(EC2Methods.Job.WORKER);
 				sqsMethods.deleteQueue(managerToWorkersQueueUrl);
 				sqsMethods.deleteQueue(workerToManagerQueueUrl);
 				ec2Methods.terminateInstancesByJob(EC2Methods.Job.MANAGER); //גול עצמי
 				System.out.println("Cleaning resources...");
 			}
-			System.out.println("Exiting ManagerToWorkerThread and JVM process...");
-		}, "ManagerToWorkerThread").start();
+			System.out.println("Exiting \"" + Thread.currentThread().getName() + "\" thread and JVM process...");
+		}, "WorkerToManagerThread").start();
 
 		while (!box.isTermination)
-			sqsMethods.receiveMessage(localAppToManagerQueueUrl).stream()
+		{
+			final List<Message> messages = sqsMethods.receiveMessage(localAppToManagerQueueUrl);
+			messages.stream()
 					.map(message -> message.body().split(SQSMethods.getSPLITERATOR())/*gives string array with length 5/6*/)
 					.forEach(strings ->
 					{
@@ -112,8 +119,10 @@ public class Main
 							e.printStackTrace();
 						}
 					});
+			sqsMethods.deleteMessageBatch(localAppToManagerQueueUrl, messages);
+		}
 		sqsMethods.deleteQueue(localAppToManagerQueueUrl);
-		System.out.println("Exiting main thread...");
+		System.out.println("Exiting \"" + Thread.currentThread().getName() + "\" thread...");
 	}
 
 	private static class Triple<T1, T2, T3>
