@@ -54,7 +54,8 @@ public class SQSMethods implements AutoCloseable
 		System.out.println("Message deleted");
 	}
 
-	public List<Message> receiveMessage(String queueURL)
+	// LocalFunc
+	public Message receiveMessage(String queueURL)
 	{
 		System.out.println("Receiving messages...");
 
@@ -65,7 +66,6 @@ public class SQSMethods implements AutoCloseable
 					.queueUrl(queueURL)
 					.maxNumberOfMessages(1)
 					.waitTimeSeconds(20)
-					.visibilityTimeout(3)
 					.build())
 					.messages();
 		} while (messages.isEmpty());
@@ -73,7 +73,7 @@ public class SQSMethods implements AutoCloseable
 		System.out.println("Received " + messages.size() + " messages: " + messages.stream()
 				.map(Message::body)
 				.collect(Collectors.toList()));
-		return messages;
+		return messages.get(0);
 	}
 
 	public void sendMessageBatch(String queueURL, String... messages)
