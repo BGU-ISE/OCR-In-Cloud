@@ -15,7 +15,7 @@ public class ProcessOCR
 	static
 	{
 		// TODO change
-        tesseract.setDatapath("");
+		tesseract.setDatapath("");
 	}
 
 	public static String process(String url) throws TesseractException, IOException
@@ -24,9 +24,7 @@ public class ProcessOCR
 		String recognizedText = tesseract.doOCR(ImageIO.read(new URL(url).openStream()));
 
 		if (recognizedText.isEmpty())
-		{
 			return "ERROR! failed to recognize text from URL: " + url;
-		}
 
 		System.out.println("URL: " + url + " | Result: " + recognizedText);
 		return recognizedText;
