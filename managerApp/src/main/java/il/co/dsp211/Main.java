@@ -69,10 +69,10 @@ public class Main
 							{
 								final String outputHTMLFileName = "text.images"+ System.currentTimeMillis() + ".html";
 								final Triple<String, Long, Queue<ContainerTag>> data = map.get(strings[1]/*queue url*/);
-								s3Methods.uploadStringToS3Bucket(data.getT1(), outputHTMLFileName,
+								s3Methods.uploadStringToS3Bucket(data.getT1()/*bucket name*/, outputHTMLFileName,
 										html(
 												head(title("OCR")),
-												body(data.getT3()
+												body(data.getT3()/*p(...)[]*/
 														.toArray(ContainerTag[]::new))
 										).renderFormatted()
 								);
