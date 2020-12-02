@@ -70,7 +70,7 @@ public class Main
 							.filter(strings -> map.get(strings[1]/*queue url*/).getT2() == 0)
 							.forEach(strings ->
 							{
-								final String outputHTMLFileName = "text.images"+ System.currentTimeMillis() + ".html";
+								final String outputHTMLFileName = "text.images" + System.currentTimeMillis() + ".html";
 								final Triple<String, Long, Queue<ContainerTag>> data = map.get(strings[1]/*queue url*/);
 								s3Methods.uploadStringToS3Bucket(data.getT1()/*bucket name*/, outputHTMLFileName,
 										html(
@@ -102,7 +102,9 @@ public class Main
 					{
 						box.isTermination = box.isTermination || (strings.length == 6 && strings[5].equals("terminate"));
 
-						ec2Methods.findOrCreateInstancesByJob(args[0]/*worker AMI*/, Integer.parseInt(strings[4]/*n*/), EC2Methods.Job.WORKER, "user data"/*TODO user data*/);
+//						ec2Methods.findOrCreateInstancesByJob(args[0]/*worker AMI*/, Integer.parseInt(strings[4]/*n*/), EC2Methods.Job.WORKER, """
+//                                                                                #!/bin/sh
+//                                                                                java -jar /home/ubuntu/workerApp.jar <workers AMI>"""/*TODO user data*/);
 
 						try (BufferedReader links = s3Methods.readObjectToString(strings[2]/*input/output bucket name*/, strings[3]/*URLs file name*/))
 						{

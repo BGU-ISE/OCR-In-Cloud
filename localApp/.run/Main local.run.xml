@@ -1,0 +1,10 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Main local" type="Application" factoryName="Application" singleton="false">
+    <option name="MAIN_CLASS_NAME" value="il.co.dsp211.Main" />
+    <module name="localApp" />
+    <option name="PROGRAM_PARAMETERS" value="text.images.txt text.images.output.txt 3 terminate" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

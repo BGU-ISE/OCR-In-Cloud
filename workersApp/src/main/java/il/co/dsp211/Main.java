@@ -9,17 +9,24 @@ public class Main
 {
 	private final static String SPLITERATOR = "🤠";
 
+	/**
+	 * <ul>
+	 *     <li>args[0]->manger to worker queue url</li>
+	 *     <li>args[1]->worker to manger queue url</li>
+	 * </ul>
+	 * @param args
+	 */
 	public static void main(String[] args)
 	{
 		try (SQSMethods sqsMethods = new SQSMethods())
 		{
-			String mangagerToWorkerQueueUrl = sqsMethods.getQueueUrl(args[0]);
+			String mangerToWorkerQueueUrl = sqsMethods.getQueueUrl(args[0]);
 			String workerToManagerQueueUrl = sqsMethods.getQueueUrl(args[1]);
 
 			while (true)
 			{
 				System.out.println("Get SQS message...");
-				Message message = sqsMethods.receiveMessage(mangagerToWorkerQueueUrl);
+				Message message = sqsMethods.receiveMessage(mangerToWorkerQueueUrl);
 				//new image task🤠<manager to local app queue url>🤠<image url> (manager->worker)
 				String[] split = message.body().split(SPLITERATOR);
 				// Assumption: The message contains only the img url
@@ -44,7 +51,7 @@ public class Main
 						split[2] + SPLITERATOR +
 						outputOCR);
 				// Delete message from the SQS queue because the task is finished
-				sqsMethods.deleteMessage(mangagerToWorkerQueueUrl, message);
+				sqsMethods.deleteMessage(mangerToWorkerQueueUrl, message);
 			}
 		}
 	}

@@ -6,37 +6,21 @@ package il.co.dsp211;
 public class Main
 {
 	/**
-	 * args[0]->input image file path
-	 * args[1]->output file path
-	 * args[2]->number of workers needed
-	 * args[3]->(optional) must be equals to "terminate"
+	 * <ul>
+	 *     <li>args[0]->input image file path</li>
+	 *     <li>args[1]->output file path</li>
+	 *     <li>args[2]->number of workers needed</li>
+	 *     <li>args[3]->(optional) must be equals to "terminate"</li>
+	 * </ul>
 	 *
 	 * @param args
 	 */
 	public static void main(String[] args)
 	{
-//		String inputImgFile, outputHtmlFile;
-//		int workersFilesRatio;
-//		boolean terminate;
-//
-//		if (args.length == 3)
-//		{
-//			inputImgFile = args[0];
-//			outputHtmlFile = args[1];
-//			workersFilesRatio = Integer.parseInt(args[2]);
-//			terminate = false;
-//		} else if (args.length == 4)
-//		{
-//			inputImgFile = args[0];
-//			outputHtmlFile = args[1];
-//			workersFilesRatio = Integer.parseInt(args[2]);
-//			terminate = true;
-//		} else
-//		{
-//			throw new IllegalArgumentException("""
-//			                                   Please provide valid input:
-//			                                   java -jar localApp.jar <inputFileName> <outputFileName> <n> [terminate]""");
-//		}
+		if (args.length != 3 && args.length != 4)
+			throw new IllegalArgumentException("""
+			                                   Please provide valid input:
+			                                   java -jar localApp.jar <inputFileName> <outputFileName> <n> [terminate]""");
 
 		try (EC2Methods ec2Methods = new EC2Methods();
 		     S3Methods s3Methods = new S3Methods();
@@ -45,7 +29,9 @@ public class Main
 			final String
 					localAppToManagerQueueUrl = sqsMethods.createQueue("localAppToManagerQueue"),
 					managerToLocalAppQueueUrl = sqsMethods.createQueue("managerToLocalAppQueue" + System.currentTimeMillis());
-			ec2Methods.findOrCreateInstancesByJob(""/*TODO*/, 1, EC2Methods.Job.MANAGER, ""/*TODO*/);
+//			ec2Methods.findOrCreateInstancesByJob("<manager AMI>"/*TODO*/, 1, EC2Methods.Job.MANAGER, """
+//                                                                                #!/bin/sh
+//                                                                                java -jar /home/ubuntu/managerApp.jar <workers AMI>"""/*TODO*/);
 			s3Methods.createBucket();
 //			new task🤠<manager to local app queue url>🤠<input/output bucket name>🤠< URLs file name>🤠<n>[🤠terminate]
 			sqsMethods.sendSingleMessage(localAppToManagerQueueUrl,
