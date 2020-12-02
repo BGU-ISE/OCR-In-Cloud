@@ -72,8 +72,8 @@ public class EC2Methods implements AutoCloseable
 //				.imageId("ami-00acfbfd2e91ae1b0") // Ubuntu Server 20.04 LTS (HVM), SSD Volume Type
 				.minCount(1)
 				.maxCount(maxCount)
-				.keyName("RoysKey")
-				.securityGroupIds("sg-0210d89a3003c1298")
+//				.keyName("RoysKey") //TODO check
+//				.securityGroupIds("sg-0210d89a3003c1298")
 				.userData(Base64.getEncoder().encodeToString(userData.getBytes()))
 				.tagSpecifications(TagSpecification.builder()
 						.resourceType(ResourceType.INSTANCE)
