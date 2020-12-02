@@ -36,6 +36,7 @@ public class SQSMethods implements AutoCloseable
 				.queueUrl(queueURL)
 				.entries(messages.stream()
 						.map(message -> DeleteMessageBatchRequestEntry.builder()
+								.id(message.messageId())
 								.receiptHandle(message.receiptHandle())
 								.build())
 						.toArray(DeleteMessageBatchRequestEntry[]::new))

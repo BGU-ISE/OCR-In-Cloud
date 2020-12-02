@@ -15,7 +15,7 @@ public class ProcessOCR
 	static
 	{
 		// TODO change
-		tesseract.setDatapath("");
+		tesseract.setDatapath("/home/ubuntu/tessdata");
 	}
 
 	public static String process(String url) throws TesseractException, IOException

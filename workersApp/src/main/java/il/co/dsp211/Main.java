@@ -2,6 +2,7 @@ package il.co.dsp211;
 
 import net.sourceforge.tess4j.TesseractException;
 import software.amazon.awssdk.services.sqs.model.Message;
+import software.amazon.awssdk.services.sqs.model.QueueDoesNotExistException;
 
 import java.io.IOException;
 
@@ -9,19 +10,12 @@ public class Main
 {
 	private final static String SPLITERATOR = "🤠";
 
-	/**
-	 * <ul>
-	 *     <li>args[0]->manger to worker queue url</li>
-	 *     <li>args[1]->worker to manger queue url</li>
-	 * </ul>
-	 * @param args
-	 */
 	public static void main(String[] args)
 	{
 		try (SQSMethods sqsMethods = new SQSMethods())
 		{
-			String mangerToWorkerQueueUrl = sqsMethods.getQueueUrl(args[0]);
-			String workerToManagerQueueUrl = sqsMethods.getQueueUrl(args[1]);
+			String mangerToWorkerQueueUrl = sqsMethods.getQueueUrl("managerToWorkersQueue");
+			String workerToManagerQueueUrl = sqsMethods.getQueueUrl("workerToManagerQueue");
 
 			while (true)
 			{
@@ -54,5 +48,13 @@ public class Main
 				sqsMethods.deleteMessage(mangerToWorkerQueueUrl, message);
 			}
 		}
+		catch (QueueDoesNotExistException e) {
+			e.printStackTrace();
+			System.out.println("WARNING: Queue Does not Exist.");
+		}
+		finally {
+			System.out.println("Cleaning resources...");
+		}
+		System.out.println("Exiting...");
 	}
 }

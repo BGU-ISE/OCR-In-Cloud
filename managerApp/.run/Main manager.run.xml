@@ -2,6 +2,7 @@
   <configuration default="false" name="Main manager" type="Application" factoryName="Application">
     <option name="MAIN_CLASS_NAME" value="il.co.dsp211.Main" />
     <module name="managerApp" />
+    <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/managerApp" />
     <method v="2">
       <option name="Make" enabled="true" />
     </method>

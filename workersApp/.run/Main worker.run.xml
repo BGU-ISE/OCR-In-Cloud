@@ -2,6 +2,7 @@
   <configuration default="false" name="Main worker" type="Application" factoryName="Application" singleton="false">
     <option name="MAIN_CLASS_NAME" value="il.co.dsp211.Main" />
     <module name="workersApp" />
+    <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/workersApp" />
     <method v="2">
       <option name="Make" enabled="true" />
     </method>
