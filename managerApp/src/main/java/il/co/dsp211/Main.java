@@ -43,7 +43,7 @@ public class Main
 				managerToWorkersQueueUrl = sqsMethods.createQueue("managerToWorkersQueue"),
 				localAppToManagerQueueUrl = sqsMethods.createQueue("localAppToManagerQueue");
 
-//			new task🤠<manager to local app queue url>🤠<input/output bucket name>🤠<URLs file name>🤠<output file name>🤠<n>[🤠terminate] (local->manager)
+//			new task🤠<manager to local app queue url>🤠<input/output bucket name>🤠<input file name>🤠<output file name>🤠<n>[🤠terminate] (local->manager)
 //			new image task🤠<manager to local app queue url>🤠<image url> (manager->worker)
 //			done OCR task🤠<manager to local app queue url>🤠<image url>🤠<text> (worker->manager)
 //			done task (manager->local)
@@ -62,7 +62,7 @@ public class Main
 							{
 								final Quadruple<String, String, Long, Queue<ContainerTag>> value = map.get(strings[1]/*queue url*/);
 								--value.t3;
-								value.getT3().add(
+								value.getT4().add(
 										p(
 												Stream.of(Stream.of(
 														img().withSrc(strings[2]/*image url*/),
@@ -78,7 +78,6 @@ public class Main
 							.filter(strings -> map.get(strings[1]/*queue url*/).getT3() == 0L)
 							.forEach(strings ->
 							{
-								final String outputHTMLFileName = "text.images" + System.currentTimeMillis() + ".html";
 								final Quadruple<String, String, Long, Queue<ContainerTag>> data = map.get(strings[1]/*queue url*/);
 								s3Methods.uploadStringToS3Bucket(data.getT1()/*bucket name*/, data.getT2(),
 										html(
@@ -87,7 +86,7 @@ public class Main
 														.toArray(ContainerTag[]::new))
 										).renderFormatted()
 								);
-								sqsMethods.sendSingleMessage(strings[1]/*queue url*/, "done task" + SQSMethods.getSPLITERATOR() + data.getT2());
+								sqsMethods.sendSingleMessage(strings[1]/*queue url*/, "done task");
 								map.remove(strings[1]/*queue url*/);
 							});
 					sqsMethods.deleteMessageBatch(workerToManagerQueueUrl, messages);
@@ -118,10 +117,13 @@ public class Main
 						{
 							map.put(strings[1]/*queue url*/,
 									new Quadruple<>(strings[2]/*input/output bucket name*/,
-											string[4],
+											strings[4]/*output file name*/,
 											links.lines()
-													.peek(imageUrl -> sqsMethods.sendSingleMessage(managerToWorkersQueueUrl,
-															"new image task" + SQSMethods.getSPLITERATOR() + strings[1]/*queue url*/ + SQSMethods.getSPLITERATOR() + imageUrl))
+													.peek(imageUrl -> /*queue url*/ sqsMethods.sendSingleMessage(managerToWorkersQueueUrl,
+															new StringBuilder("new image task").append(SQSMethods.getSPLITERATOR())
+																	.append(strings[1]).append(SQSMethods.getSPLITERATOR())
+																	.append(imageUrl)
+																	.toString()))
 													.count(),
 											new LinkedList<>()));
 						}
@@ -181,35 +183,45 @@ public class Main
 			this.t3 = t3;
 		}
 
-		public T4 getT4() {
+		public T4 getT4()
+		{
 			return t4;
 		}
 
-		public void setT4(T4 t4) {
+		public void setT4(T4 t4)
+		{
 			this.t4 = t4;
 		}
 
 		@Override
-		public boolean equals(Object o) {
-			if (this == o) return true;
-			if (!(o instanceof Quadruple)) return false;
+		public boolean equals(Object o)
+		{
+			if (this == o)
+				return true;
+			if (!(o instanceof Quadruple))
+				return false;
 			Quadruple<?, ?, ?, ?> quadruple = (Quadruple<?, ?, ?, ?>) o;
-			return t1.equals(quadruple.t1) && t2.equals(quadruple.t2) && t3.equals(quadruple.t3) && t4.equals(quadruple.t4);
+			return t1.equals(quadruple.t1) &&
+			       t2.equals(quadruple.t2) &&
+			       t3.equals(quadruple.t3) &&
+			       t4.equals(quadruple.t4);
 		}
 
 		@Override
-		public int hashCode() {
+		public int hashCode()
+		{
 			return Objects.hash(t1, t2, t3, t4);
 		}
 
 		@Override
-		public String toString() {
+		public String toString()
+		{
 			return "Quadruple{" +
-					"t1=" + t1 +
-					", t2=" + t2 +
-					", t3=" + t3 +
-					", t4=" + t4 +
-					'}';
+			       "t1=" + t1 +
+			       ", t2=" + t2 +
+			       ", t3=" + t3 +
+			       ", t4=" + t4 +
+			       '}';
 		}
 	}
 }

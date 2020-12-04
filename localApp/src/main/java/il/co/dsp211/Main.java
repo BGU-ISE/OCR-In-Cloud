@@ -31,18 +31,20 @@ public class Main
 //                                                                                #!/bin/sh
 //                                                                                java -jar /home/ubuntu/managerApp.jar ami-0f57a43e27cf901d8"""/*TODO: <workers AMI>*/);
 			s3Methods.createBucket();
-//			new task🤠<manager to local app queue url>🤠<input/output bucket name>🤠< URLs file name>🤠<n>[🤠terminate]
+//			new task🤠<manager to local app queue url>🤠<input/output bucket name>🤠<input file name>🤠<output file name>🤠<n>[🤠terminate]
 			sqsMethods.sendSingleMessage(localAppToManagerQueueUrl,
-					"new task" + SQSMethods.getSPLITERATOR() +
-					managerToLocalAppQueueUrl + SQSMethods.getSPLITERATOR() +
-					s3Methods.getBucketName() + SQSMethods.getSPLITERATOR() +
-					s3Methods.uploadFileToS3Bucket(args[0]) + SQSMethods.getSPLITERATOR() +
-					args[2] + SQSMethods.getSPLITERATOR() +
-					(args.length == 4 && args[3].equals("terminate") ? args[3] : ""));
+					new StringBuilder("new task").append(SQSMethods.getSPLITERATOR())
+							.append(managerToLocalAppQueueUrl).append(SQSMethods.getSPLITERATOR())
+							.append(s3Methods.getBucketName()).append(SQSMethods.getSPLITERATOR())
+							.append(s3Methods.uploadFileToS3Bucket(args[0])).append(SQSMethods.getSPLITERATOR())
+							.append(args[1]).append(SQSMethods.getSPLITERATOR())
+							.append(args[2]).append(SQSMethods.getSPLITERATOR())
+							.append(args.length == 4 && args[3].equals("terminate") ? args[3] : "")
+							.toString());
 
-//			done task🤠<output file name>
-			s3Methods.downloadFileFromS3Bucket(sqsMethods.receiveMessage(managerToLocalAppQueueUrl)
-					.split(SQSMethods.getSPLITERATOR())[1]);
+//			done task
+			sqsMethods.receiveMessage(managerToLocalAppQueueUrl);
+			s3Methods.downloadFileFromS3Bucket(args[1]);
 
 			s3Methods.deleteBucketBatch();
 			sqsMethods.deleteQueue(managerToLocalAppQueueUrl);
