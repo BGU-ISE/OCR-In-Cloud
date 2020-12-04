@@ -14,8 +14,9 @@ public class Main
 	{
 		try (SQSMethods sqsMethods = new SQSMethods())
 		{
-			String mangerToWorkerQueueUrl = sqsMethods.getQueueUrl("managerToWorkersQueue");
-			String workerToManagerQueueUrl = sqsMethods.getQueueUrl("workerToManagerQueue");
+			// TODO: Instead of getSqsQueueByName
+			String mangerToWorkerQueueUrl = sqsMethods.createQueue("managerToWorkersQueue");
+			String workerToManagerQueueUrl = sqsMethods.createQueue("workerToManagerQueue");
 
 			while (true)
 			{
