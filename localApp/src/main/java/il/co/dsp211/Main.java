@@ -29,9 +29,9 @@ public class Main
 			final String
 					localAppToManagerQueueUrl = sqsMethods.createQueue("localAppToManagerQueue"),
 					managerToLocalAppQueueUrl = sqsMethods.createQueue("managerToLocalAppQueue" + System.currentTimeMillis());
-			ec2Methods.findOrCreateInstancesByJob("ami-0f57a43e27cf901d8"/*TODO:<manager AMI>*/, 1, EC2Methods.Job.MANAGER, """
-                                                                                #!/bin/sh
-                                                                                java -jar /home/ubuntu/managerApp.jar ami-0f57a43e27cf901d8"""/*TODO: <workers AMI>*/);
+//			ec2Methods.findOrCreateInstancesByJob("ami-0f57a43e27cf901d8"/*TODO:<manager AMI>*/, 1, EC2Methods.Job.MANAGER, """
+//                                                                                #!/bin/sh
+//                                                                                java -jar /home/ubuntu/managerApp.jar ami-0f57a43e27cf901d8"""/*TODO: <workers AMI>*/);
 			s3Methods.createBucket();
 //			new task🤠<manager to local app queue url>🤠<input/output bucket name>🤠< URLs file name>🤠<n>[🤠terminate]
 			sqsMethods.sendSingleMessage(localAppToManagerQueueUrl,
