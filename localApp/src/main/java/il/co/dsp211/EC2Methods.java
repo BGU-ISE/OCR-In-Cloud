@@ -4,6 +4,8 @@ import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.ec2.Ec2Client;
 import software.amazon.awssdk.services.ec2.model.*;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -11,20 +13,22 @@ import java.util.stream.Stream;
 
 public class EC2Methods implements AutoCloseable
 {
+	private final static String instanceJobKey = "JOB";
+	private final Properties properties = new Properties();
+
+	public EC2Methods() throws IOException
+	{
+		try (InputStream input = getClass().getClassLoader().getResourceAsStream("secure_info.properties"))
+		{
+			properties.load(input);
+		}
+	}
+
 	private final Ec2Client ec2Client = Ec2Client.builder()
 			.region(Region.US_EAST_1)
 			.build();
-	private final static String instanceJobKey = "JOB";
-	private static final Properties properties = new Properties();
 
-	static {
-		try (InputStream input = getClass().getClassLoader().getResourceAsStream(filename)) {
-			
-		}
-		}
-
-
-	public Map<String, List<InstanceSt"secure_info.properties"> printInstancesState()
+	public Map<String, List<InstanceStateName>> printInstancesState()
 	{
 		return ec2Client.describeInstances(DescribeInstancesRequest.builder()
 //                .instanceIds(response.instances().stream()
@@ -76,8 +80,11 @@ public class EC2Methods implements AutoCloseable
 				.imageId(imageId)
 				.minCount(1)
 				.maxCount(maxCount)
-//				.keyName("RoysKey") // TODO: check
-//				.securityGroupIds("sg-0210d89a3003c1298")
+				.iamInstanceProfile(IamInstanceProfileSpecification.builder()
+						.arn(properties.getProperty("arn"))
+						.build())
+				.keyName(properties.getProperty("keyName"))
+				.securityGroupIds(properties.getProperty("securityGroupIds"))
 				.userData(Base64.getEncoder().encodeToString(userData.getBytes()))
 				.tagSpecifications(TagSpecification.builder()
 						.resourceType(ResourceType.INSTANCE)

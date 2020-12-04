@@ -1,6 +1,8 @@
 package il.co.dsp211;
 
 
+import java.io.IOException;
+
 public class Main
 {
 	/**
@@ -13,7 +15,7 @@ public class Main
 	 *
 	 * @param args
 	 */
-	public static void main(String... args)
+	public static void main(String... args) throws IOException
 	{
 		if (args.length != 3 && args.length != 4)
 			throw new IllegalArgumentException("""
