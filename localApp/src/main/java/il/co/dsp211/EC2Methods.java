@@ -120,6 +120,10 @@ public class EC2Methods implements AutoCloseable
 		System.out.println("Done");
 	}
 
+	public Properties getProperties() {
+		return properties;
+	}
+
 	@Override
 	public void close()
 	{

@@ -33,9 +33,9 @@ public class EC2Methods implements AutoCloseable
 //	#!/bin/sh
 //	echo hello world > /home/ubuntu/hello_world.txt"""
 
-	public void findOrCreateInstancesByJob(String imageId, int maxCount, Job job, String userData)
+	public void findOrCreateInstancesByJob(String imageId, int maxCount, Job job, String userData, String arn, String keyName, String securityGroupId)
 	{
-		createInstanceByJob(imageId, Math.min(maxCount, 20 - 1 - 1) - (int) findInstanceByJob(job).count(), job, userData);
+		createInstanceByJob(imageId, Math.min(maxCount, 20 - 1 - 1) - (int) findInstanceByJob(job).count(), job, userData, arn, keyName, securityGroupId);
 	}
 
 	private Stream<Instance> findInstanceByJob(Job job)
@@ -53,7 +53,7 @@ public class EC2Methods implements AutoCloseable
 				                    instance.state().name().equals(InstanceStateName.PENDING));
 	}
 
-	private void createInstanceByJob(String imageId, int maxCount, Job job, String userData)
+	private void createInstanceByJob(String imageId, int maxCount, Job job, String userData, String arn, String keyName, String securityGroupId)
 	{
 		if (maxCount <= 0)
 		{
@@ -61,21 +61,18 @@ public class EC2Methods implements AutoCloseable
 			return;
 		}
 
-		Properties.
-
 		System.out.println("Creating" + maxCount + " instances with job" + job + "...");
 
 		ec2Client.runInstances(RunInstancesRequest.builder()
 				.instanceType(InstanceType.T2_MICRO)
 				.imageId(imageId)
-//				.imageId("ami-00acfbfd2e91ae1b0") // Ubuntu Server 20.04 LTS (HVM), SSD Volume Type
 				.minCount(1)
 				.maxCount(maxCount)
-//				.keyName("RoysKey") // TODO: Check
-//				.securityGroupIds("sg-0210d89a3003c1298")
 				.iamInstanceProfile(IamInstanceProfileSpecification.builder()
-						.arn()
+						.arn(arn)
 						.build())
+				.keyName(keyName)
+				.securityGroupIds(securityGroupId)
 				.userData(Base64.getEncoder().encodeToString(userData.getBytes()))
 				.tagSpecifications(TagSpecification.builder()
 						.resourceType(ResourceType.INSTANCE)
