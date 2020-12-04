@@ -4,10 +4,7 @@ import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.ec2.Ec2Client;
 import software.amazon.awssdk.services.ec2.model.*;
 
-import java.util.Base64;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -64,6 +61,8 @@ public class EC2Methods implements AutoCloseable
 			return;
 		}
 
+		Properties.
+
 		System.out.println("Creating" + maxCount + " instances with job" + job + "...");
 
 		ec2Client.runInstances(RunInstancesRequest.builder()
@@ -74,6 +73,9 @@ public class EC2Methods implements AutoCloseable
 				.maxCount(maxCount)
 //				.keyName("RoysKey") // TODO: Check
 //				.securityGroupIds("sg-0210d89a3003c1298")
+				.iamInstanceProfile(IamInstanceProfileSpecification.builder()
+						.arn()
+						.build())
 				.userData(Base64.getEncoder().encodeToString(userData.getBytes()))
 				.tagSpecifications(TagSpecification.builder()
 						.resourceType(ResourceType.INSTANCE)

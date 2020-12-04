@@ -4,10 +4,7 @@ import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.ec2.Ec2Client;
 import software.amazon.awssdk.services.ec2.model.*;
 
-import java.util.Base64;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -18,8 +15,16 @@ public class EC2Methods implements AutoCloseable
 			.region(Region.US_EAST_1)
 			.build();
 	private final static String instanceJobKey = "JOB";
+	private static final Properties properties = new Properties();
 
-	public Map<String, List<InstanceStateName>> printInstancesState()
+	static {
+		try (InputStream input = getClass().getClassLoader().getResourceAsStream(filename)) {
+			
+		}
+		}
+
+
+	public Map<String, List<InstanceSt"secure_info.properties"> printInstancesState()
 	{
 		return ec2Client.describeInstances(DescribeInstancesRequest.builder()
 //                .instanceIds(response.instances().stream()
