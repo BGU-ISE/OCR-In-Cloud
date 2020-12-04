@@ -26,7 +26,7 @@ public class Main
 		j2html.Config.indenter = (level, text) -> String.join("", Collections.nCopies(level, "\t")) + text;
 	}
 
-	public static void main(String[] args)
+	public static void main(String... args)
 	{
 		final Map<String /*local app <- manager URL*/, Quadruple<String /*input/output bucket name*/, String/*output file name*/, Long /*remaining tasks*/, Queue<ContainerTag>>> map = new ConcurrentHashMap<>();
 

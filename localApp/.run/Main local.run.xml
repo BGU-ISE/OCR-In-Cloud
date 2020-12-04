@@ -3,7 +3,6 @@
     <option name="MAIN_CLASS_NAME" value="il.co.dsp211.Main" />
     <module name="localApp" />
     <option name="PROGRAM_PARAMETERS" value="text.images.txt text.images.output.txt 1 terminate" />
-    <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/localApp" />
     <method v="2">
       <option name="Make" enabled="true" />
     </method>

@@ -13,7 +13,7 @@ public class Main
 	 *
 	 * @param args
 	 */
-	public static void main(String[] args)
+	public static void main(String... args)
 	{
 		if (args.length != 3 && args.length != 4)
 			throw new IllegalArgumentException("""
@@ -32,15 +32,16 @@ public class Main
 //                                                                                java -jar /home/ubuntu/managerApp.jar ami-0f57a43e27cf901d8"""/*TODO: <workers AMI>*/);
 			s3Methods.createBucket();
 //			new task🤠<manager to local app queue url>🤠<input/output bucket name>🤠<input file name>🤠<output file name>🤠<n>[🤠terminate]
-			sqsMethods.sendSingleMessage(localAppToManagerQueueUrl,
-					new StringBuilder("new task").append(SQSMethods.getSPLITERATOR())
-							.append(managerToLocalAppQueueUrl).append(SQSMethods.getSPLITERATOR())
-							.append(s3Methods.getBucketName()).append(SQSMethods.getSPLITERATOR())
-							.append(s3Methods.uploadFileToS3Bucket(args[0])).append(SQSMethods.getSPLITERATOR())
-							.append(args[1]).append(SQSMethods.getSPLITERATOR())
-							.append(args[2]).append(SQSMethods.getSPLITERATOR())
-							.append(args.length == 4 && args[3].equals("terminate") ? args[3] : "")
-							.toString());
+			final StringBuilder stringBuilder = new StringBuilder("new task").append(SQSMethods.getSPLITERATOR())
+					.append(managerToLocalAppQueueUrl).append(SQSMethods.getSPLITERATOR())
+					.append(s3Methods.getBucketName()).append(SQSMethods.getSPLITERATOR())
+					.append(s3Methods.uploadFileToS3Bucket(args[0])).append(SQSMethods.getSPLITERATOR())
+					.append(args[1]).append(SQSMethods.getSPLITERATOR())
+					.append(args[2]);
+			if (args.length == 4 && args[3].equals("terminate"))
+				stringBuilder.append(SQSMethods.getSPLITERATOR())
+						.append(args[3]);
+			sqsMethods.sendSingleMessage(localAppToManagerQueueUrl, stringBuilder.toString());
 
 //			done task
 			sqsMethods.receiveMessage(managerToLocalAppQueueUrl);
