@@ -34,6 +34,8 @@ public class Main
 		final SQSMethods sqsMethods = new SQSMethods();
 		final S3Methods s3Methods = new S3Methods();
 
+		System.out.println("Args: " + Arrays.toString(args)); // TODO: TESTING
+
 		final var box = new Object()
 		{
 			boolean isTermination;

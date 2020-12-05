@@ -61,7 +61,7 @@ public class EC2Methods implements AutoCloseable
 			return;
 		}
 
-		System.out.println("Creating" + maxCount + " instances with job" + job + "...");
+		System.out.println("Creating " + maxCount + " instances with job " + job + "...");
 
 		ec2Client.runInstances(RunInstancesRequest.builder()
 				.instanceType(InstanceType.T2_MICRO)
