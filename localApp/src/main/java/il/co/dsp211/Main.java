@@ -30,8 +30,8 @@ public class Main
 					localAppToManagerQueueUrl = sqsMethods.createQueue("localAppToManagerQueue"),
 					managerToLocalAppQueueUrl = sqsMethods.createQueue("managerToLocalAppQueue" + System.currentTimeMillis());
 			ec2Methods.findOrCreateInstancesByJob("ami-02948711fd557604b"/*TODO:<manager AMI>*/, 1, EC2Methods.Job.MANAGER, """
-					#!/bin/sh
-					java -jar /home/ubuntu/managerApp.jar ami-02948711fd557604b"""/*TODO: <workers AMI>*/ + " " + ec2Methods.getProperties().getProperty("arn") + " " + ec2Methods.getProperties().getProperty("keyName") + " " + ec2Methods.getProperties().getProperty("securityGroupIds"));
+			                                                                                                                #!/bin/sh
+			                                                                                                                java -jar /home/ubuntu/managerApp.jar ami-02948711fd557604b"""/*TODO: <workers AMI>*/ + " " + ec2Methods.getProperties().getProperty("arn") + " " + ec2Methods.getProperties().getProperty("keyName") + " " + ec2Methods.getProperties().getProperty("securityGroupIds"));
 			s3Methods.createBucket();
 //			new task🤠<manager to local app queue url>🤠<input/output bucket name>🤠<input file name>🤠<output file name>🤠<n>[🤠terminate]
 			final StringBuilder stringBuilder = new StringBuilder("new task").append(SQSMethods.getSPLITERATOR())
