@@ -113,7 +113,7 @@ public class Main
 
 						ec2Methods.findOrCreateInstancesByJob(args[0]/*worker AMI*/, Integer.parseInt(strings[5]/*n*/), EC2Methods.Job.WORKER, """
 						                                                                                                                       #!/bin/sh
-						                                                                                                                       java -jar /home/ubuntu/workerApp.jar &""", args[1], args[2], args[3]);
+						                                                                                                                       java -jar /home/ubuntu/workerApp.jar""", args[1], args[2], args[3]);
 
 						try (BufferedReader links = s3Methods.readObjectToString(strings[2]/*input/output bucket name*/, strings[3]/*URLs file name*/))
 						{
