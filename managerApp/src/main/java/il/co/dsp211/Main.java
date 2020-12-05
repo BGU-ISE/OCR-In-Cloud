@@ -28,7 +28,7 @@ public class Main
 
 	public static void main(String... args)
 	{
-		final Map<String /*local app <- manager URL*/, Quadruple<String /*input/output bucket name*/, String/*output file name*/, Long /*remaining tasks*/, Queue<ContainerTag>>> map = new ConcurrentHashMap<>();
+		final Map<String /*local app <- manager URL*/, Quadruple<String /*input/output bucket name*/, String/*output file name*/, Long /*remaining tasks*/, Queue<ContainerTag> /*HTML content*/>> map = new ConcurrentHashMap<>();
 
 		final EC2Methods ec2Methods = new EC2Methods();
 		final SQSMethods sqsMethods = new SQSMethods();
@@ -100,7 +100,7 @@ public class Main
 				System.out.println("Cleaning resources...");
 			}
 			System.out.println("Exiting \"" + Thread.currentThread().getName() + "\" thread and JVM process...");
-		}, "WorkerToManagerThread").start();
+		}, "WorkerToManager").start();
 
 		while (!box.isTermination)
 		{
@@ -113,7 +113,7 @@ public class Main
 
 						ec2Methods.findOrCreateInstancesByJob(args[0]/*worker AMI*/, Integer.parseInt(strings[5]/*n*/), EC2Methods.Job.WORKER, """
 						                                                                                                                       #!/bin/sh
-						                                                                                                                       java -jar /home/ubuntu/workerApp.jar""", args[1], args[2], args[3]);
+						                                                                                                                       java -jar /home/ubuntu/workerApp.jar &""", args[1], args[2], args[3]);
 
 						try (BufferedReader links = s3Methods.readObjectToString(strings[2]/*input/output bucket name*/, strings[3]/*URLs file name*/))
 						{
