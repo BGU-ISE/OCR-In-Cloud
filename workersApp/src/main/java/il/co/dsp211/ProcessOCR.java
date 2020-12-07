@@ -14,8 +14,8 @@ public class ProcessOCR
 
 	static
 	{
-		// TODO change
 		tesseract.setDatapath("/usr/share/tesseract-ocr/4.00/tessdata");
+//		tesseract.setDatapath("C:\\Users\\amitb\\AppData\\Local\\Programs\\Tesseract-OCR\\tessdata");
 	}
 
 	public static String process(String url) throws TesseractException, IOException

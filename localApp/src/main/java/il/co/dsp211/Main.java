@@ -1,7 +1,7 @@
 package il.co.dsp211;
 
-//TODO: change the manager by the following changes:
-// SQSMethods: "createQueue" , "getQueueUrl"
+
+import java.io.IOException;
 
 public class Main
 {
@@ -15,7 +15,7 @@ public class Main
 	 *
 	 * @param args
 	 */
-	public static void main(String[] args)
+	public static void main(String... args) throws IOException
 	{
 		if (args.length != 3 && args.length != 4)
 			throw new IllegalArgumentException("""
@@ -29,22 +29,25 @@ public class Main
 			final String
 					localAppToManagerQueueUrl = sqsMethods.createQueue("localAppToManagerQueue"),
 					managerToLocalAppQueueUrl = sqsMethods.createQueue("managerToLocalAppQueue" + System.currentTimeMillis());
-//			ec2Methods.findOrCreateInstancesByJob("ami-0f57a43e27cf901d8"/*TODO:<manager AMI>*/, 1, EC2Methods.Job.MANAGER, """
-//                                                                                #!/bin/sh
-//                                                                                java -jar /home/ubuntu/managerApp.jar ami-0f57a43e27cf901d8"""/*TODO: <workers AMI>*/);
+			ec2Methods.findOrCreateInstancesByJob("ami-02948711fd557604b"/*TODO:<manager AMI>*/, 1, EC2Methods.Job.MANAGER, """
+			                                                                                                                #!/bin/sh
+			                                                                                                                java -jar /home/ubuntu/managerApp.jar ami-02948711fd557604b"""/*TODO: <workers AMI>*/ + " " + ec2Methods.getProperties().getProperty("arn") + " " + ec2Methods.getProperties().getProperty("keyName") + " " + ec2Methods.getProperties().getProperty("securityGroupIds"));
 			s3Methods.createBucket();
-//			new task🤠<manager to local app queue url>🤠<input/output bucket name>🤠< URLs file name>🤠<n>[🤠terminate]
-			sqsMethods.sendSingleMessage(localAppToManagerQueueUrl,
-					"new task" + SQSMethods.getSPLITERATOR() +
-					managerToLocalAppQueueUrl + SQSMethods.getSPLITERATOR() +
-					s3Methods.getBucketName() + SQSMethods.getSPLITERATOR() +
-					s3Methods.uploadFileToS3Bucket(args[0]) + SQSMethods.getSPLITERATOR() +
-					args[2] + SQSMethods.getSPLITERATOR() +
-					(args.length == 4 && args[3].equals("terminate") ? args[3] : ""));
+//			new task🤠<manager to local app queue url>🤠<input/output bucket name>🤠<input file name>🤠<output file name>🤠<n>[🤠terminate]
+			final StringBuilder stringBuilder = new StringBuilder("new task").append(SQSMethods.getSPLITERATOR())
+					.append(managerToLocalAppQueueUrl).append(SQSMethods.getSPLITERATOR())
+					.append(s3Methods.getBucketName()).append(SQSMethods.getSPLITERATOR())
+					.append(s3Methods.uploadFileToS3Bucket(args[0])).append(SQSMethods.getSPLITERATOR())
+					.append(args[1]).append(SQSMethods.getSPLITERATOR())
+					.append(args[2]);
+			if (args.length == 4 && args[3].equals("terminate"))
+				stringBuilder.append(SQSMethods.getSPLITERATOR())
+						.append(args[3]);
+			sqsMethods.sendSingleMessage(localAppToManagerQueueUrl, stringBuilder.toString());
 
-//			done task🤠<output file name>
-			s3Methods.downloadFileFromS3Bucket(sqsMethods.receiveMessage(managerToLocalAppQueueUrl)
-					.split(SQSMethods.getSPLITERATOR())[1]);
+//			done task
+			sqsMethods.receiveMessage(managerToLocalAppQueueUrl);
+			s3Methods.downloadFileFromS3Bucket(args[1]);
 
 			s3Methods.deleteBucketBatch();
 			sqsMethods.deleteQueue(managerToLocalAppQueueUrl);
