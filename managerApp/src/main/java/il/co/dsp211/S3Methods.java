@@ -58,17 +58,9 @@ public class S3Methods implements AutoCloseable
 			listObjectsV2Response = s3Client.listObjectsV2(listObjectsV2Request);
 			if (!listObjectsV2Response.contents().isEmpty())
 			{
-				s3Client.deleteObjects(DeleteObjectsRequest.builder()
-						.bucket(bucketName)
-						.delete(Delete.builder()
-								.quiet(true)
-								.objects(listObjectsV2Response.contents().stream()
-										.map(s3Object -> ObjectIdentifier.builder()
-												.key(s3Object.key())
-												.build())
-										.toArray(ObjectIdentifier[]::new))
-								.build())
-						.build());
+				deleteObjects(bucketName,
+						listObjectsV2Response.contents().stream()
+								.map(S3Object::key));
 
 				listObjectsV2Request = ListObjectsV2Request.builder()
 						.bucket(bucketName)
@@ -91,14 +83,18 @@ public class S3Methods implements AutoCloseable
 		if (names.length > 1000)
 			throw new IllegalArgumentException("There should be 1000 names or less, got " + names.length);
 
+		deleteObjects(bucketName, Stream.of(names));
+	}
+
+	private void deleteObjects(String bucketName, Stream<String> names)
+	{
 		s3Client.deleteObjects(DeleteObjectsRequest.builder()
 				.bucket(bucketName)
 				.delete(Delete.builder()
 						.quiet(true)
-						.objects(Stream.of(names)
-								.map(name -> ObjectIdentifier.builder()
-										.key(name)
-										.build())
+						.objects(names.map(name -> ObjectIdentifier.builder()
+								.key(name)
+								.build())
 								.toArray(ObjectIdentifier[]::new))
 						.build())
 				.build());
