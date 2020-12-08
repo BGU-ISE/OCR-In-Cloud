@@ -100,8 +100,10 @@ public class Main
 							s3Methods.uploadLongToS3Bucket(strings[1]/*queue name*/,
 									"numOfUndoneURLs",
 									links.lines()
-											.peek(imageUrl -> sqsMethods.sendSingleMessage(managerToWorkersQueueUrl,
-													"new image task" + SQSMethods.getSPLITERATOR() + strings[1]/*queue name*/ + SQSMethods.getSPLITERATOR() + imageUrl))
+											.peek(imageUrl -> /*queue name*/ sqsMethods.sendSingleMessage(managerToWorkersQueueUrl,
+													new StringBuilder("new image task").append(SQSMethods.getSPLITERATOR())
+															.append(strings[1]).append(SQSMethods.getSPLITERATOR())
+															.append(imageUrl).toString()))
 											.count());
 							localAppsCounter.incrementAndGet();
 						}
