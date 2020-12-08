@@ -60,7 +60,7 @@ public class Main
 			                                  	</head>
 			                                  	<body>
 			                                  	""", StandardOpenOption.CREATE);
-			Files.write(outputFilePath, s3Methods.getAllObjectsWith()/*p(...)[]*/, StandardOpenOption.APPEND);
+			Files.write(outputFilePath, s3Methods::getAllObjectsWith/*p(...)[]*/, StandardOpenOption.APPEND);
 			Files.writeString(outputFilePath, """
 			                                  	</body>
 			                                  </html>""", StandardOpenOption.APPEND);

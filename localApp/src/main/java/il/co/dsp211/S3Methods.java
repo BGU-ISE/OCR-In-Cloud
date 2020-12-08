@@ -150,9 +150,9 @@ public class S3Methods implements AutoCloseable
 		return responseInputStream.asUtf8String();
 	}
 
-	public Iterable<String> getAllObjectsWith()
+	public Iterator<CharSequence> getAllObjectsWith()
 	{
-		return () -> new Iterator<>()
+		return new Iterator<>()
 		{
 			private ListObjectsV2Response listObjectsV2Response = s3Client.listObjectsV2(ListObjectsV2Request.builder()
 					.bucket(bucketName)
