@@ -16,16 +16,16 @@ import static j2html.TagCreator.*;
 
 public class S3Methods implements AutoCloseable
 {
+	static
+	{
+		j2html.Config.indenter = (level, text) -> String.join("", Collections.nCopies(level + 2, "\t")) + text;
+	}
+
 	//	private final static Region region = Region.US_EAST_1;
 	private final S3Client s3Client = S3Client.builder()
 			.region(Region.US_EAST_1)
 			.build();
 	private final String bucketName = "bucky" + System.currentTimeMillis();
-
-	static
-	{
-		j2html.Config.indenter = (level, text) -> String.join("", Collections.nCopies(level + 2, "\t")) + text;
-	}
 
 	public String getBucketName()
 	{
@@ -183,16 +183,18 @@ public class S3Methods implements AutoCloseable
 			public String next()
 			{
 				final String url = iterator.next().key();
-				return p(
-						Stream.of(
-								Stream.of(img().withSrc(url/*image url*/)),
-								readObjectToString(url)/*text*/.lines()
-										.flatMap(line -> Stream.of(
-												br(),
-												text(line))))
-								.flatMap(Function.identity())
-								.toArray(DomContent[]::new)
-				).renderFormatted();
+				return new StringBuilder("\t\t")
+						.append(p(
+								Stream.of(
+										Stream.of(img().withSrc(url/*image url*/)),
+										readObjectToString(url)/*text*/.lines()
+												.flatMap(line -> Stream.of(
+														br(),
+														text(line))))
+										.flatMap(Function.identity())
+										.toArray(DomContent[]::new)
+						).renderFormatted())
+						.toString();
 			}
 		};
 	}
