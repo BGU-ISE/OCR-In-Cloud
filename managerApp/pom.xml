@@ -45,11 +45,6 @@
 <!--			<version>RELEASE</version>-->
 <!--			<type>jar</type>-->
 <!--		</dependency>-->
-		<dependency>
-			<groupId>com.j2html</groupId>
-			<artifactId>j2html</artifactId>
-			<version>RELEASE</version>
-		</dependency>
 
 		<dependency>
 			<groupId>org.junit.jupiter</groupId>

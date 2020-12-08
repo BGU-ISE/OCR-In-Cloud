@@ -1,5 +1,6 @@
 package il.co.dsp211;
 
+import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
@@ -9,7 +10,6 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.nio.ByteBuffer;
 import java.nio.file.Path;
-import java.util.function.Function;
 import java.util.stream.Stream;
 
 public class S3Methods implements AutoCloseable
@@ -84,6 +84,26 @@ public class S3Methods implements AutoCloseable
 		System.out.println("Bucket \"" + bucketName + "\" was deleted successfully");
 	}
 
+	public void deleteObjects(String bucketName, String... names)
+	{
+		if (names.length == 0)
+			return;
+		if (names.length > 1000)
+			throw new IllegalArgumentException("There should be 1000 names or less, got " + names.length);
+
+		s3Client.deleteObjects(DeleteObjectsRequest.builder()
+				.bucket(bucketName)
+				.delete(Delete.builder()
+						.quiet(true)
+						.objects(Stream.of(names)
+								.map(name -> ObjectIdentifier.builder()
+										.key(name)
+										.build())
+								.toArray(ObjectIdentifier[]::new))
+						.build())
+				.build());
+	}
+
 	public void uploadFileToS3Bucket(String bucketName, String pathString)
 	{
 		System.out.println("Upload file to S3 bucket...");
@@ -122,7 +142,7 @@ public class S3Methods implements AutoCloseable
 		System.out.println("Object downloaded and saved");
 	}
 
-	public BufferedReader readObjectToString(String bucketName, String key)
+	public BufferedReader readObjectToBufferedReader(String bucketName, String key)
 	{
 		System.out.println("Getting object " + key + "...");
 
@@ -131,24 +151,19 @@ public class S3Methods implements AutoCloseable
 				.bucket(bucketName)
 				.key(key)
 				.build())));
-//		return new String(responseInputStream.readAllBytes());
-//		catch (IOException e)
-//		{
-//			e.printStackTrace();
-//		}
-//		finally
-//		{
-//			System.out.println("Object received");
-//		}
+	}
 
-//		ResponseBytes<GetObjectResponse> responseInputStream = s3Client.getObjectAsBytes(GetObjectRequest.builder()
-//				.bucket(bucketName)
-//				.key(key)
-//				.build());
-//
-//		System.out.println("Object received");
-//		return responseInputStream.asString(Charset.defaultCharset());
+	public String readObjectToString(String bucketName, String key)
+	{
+		System.out.println("Getting object " + key + "...");
 
+		ResponseBytes<GetObjectResponse> responseInputStream = s3Client.getObjectAsBytes(GetObjectRequest.builder()
+				.bucket(bucketName)
+				.key(key)
+				.build());
+
+		System.out.println("Object received");
+		return responseInputStream.asUtf8String();
 	}
 
 	public void uploadLongToS3Bucket(String bucketName, String key, long value)
@@ -159,6 +174,7 @@ public class S3Methods implements AutoCloseable
 				.bucket(bucketName)
 				.key(key)
 				.build(), RequestBody.fromByteBuffer(ByteBuffer.allocate(Long.BYTES).putLong(value)));
+
 		System.out.println("text was uploaded successfully");
 	}
 
@@ -172,46 +188,6 @@ public class S3Methods implements AutoCloseable
 				.build())
 				.asByteBuffer()
 				.getLong();
-	}
-
-	public Stream<BufferedReader> getAllObjectsWithPrefix(String bucketName, String prefix)
-	{
-		ListObjectsV2Request listObjectsV2Request = ListObjectsV2Request.builder()
-				.bucket(bucketName)
-				.prefix("url")
-//				.delimiter(SQSMethods.getSPLITERATOR())
-				.build();
-		ListObjectsV2Response listObjectsV2Response;
-		Stream<BufferedReader> bufferedReaderStream = Stream.of();
-
-		do
-		{
-			listObjectsV2Response = s3Client.listObjectsV2(listObjectsV2Request);
-			if (!listObjectsV2Response.contents().isEmpty())
-			{
-				bufferedReaderStream = Stream.concat(bufferedReaderStream, listObjectsV2Response.contents().stream()
-						.map(s3Object -> readObjectToString(bucketName, s3Object.key())));
-
-				listObjectsV2Request = ListObjectsV2Request.builder()
-						.bucket(bucketName)
-						.continuationToken(listObjectsV2Response.nextContinuationToken())
-						.build();
-			}
-		} while (listObjectsV2Response.isTruncated());
-		return bufferedReaderStream;
-	}
-
-	public void uploadFileToS3Bucket(String bucketName, String pathString)
-	{
-		System.out.println("Upload file to S3 bucket...");
-
-		Path path = Path.of(pathString);
-		s3Client.putObject(PutObjectRequest.builder()
-				.bucket(bucketName)
-				.key(path.getFileName().toString())
-				.build(), RequestBody.fromByteBuffer());
-
-		System.out.println("File \"" + path.getFileName() + "\" was uploaded successfully");
 	}
 
 	@Override
