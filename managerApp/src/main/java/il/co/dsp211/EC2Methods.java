@@ -4,17 +4,20 @@ import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.ec2.Ec2Client;
 import software.amazon.awssdk.services.ec2.model.*;
 
-import java.util.*;
+import java.util.Base64;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 
 public class EC2Methods implements AutoCloseable
 {
+	private final static String instanceJobKey = "JOB";
 	private final Ec2Client ec2Client = Ec2Client.builder()
 			.region(Region.US_EAST_1)
 			.build();
-	private final static String instanceJobKey = "JOB";
 
 	public Map<String, List<InstanceStateName>> printInstancesState()
 	{
@@ -63,7 +66,7 @@ public class EC2Methods implements AutoCloseable
 
 		System.out.println("Creating " + maxCount + " instances with job " + job + "...");
 
-		ec2Client.runInstances(RunInstancesRequest.builder()
+		System.out.println(ec2Client.runInstances(RunInstancesRequest.builder()
 				.instanceType(InstanceType.T2_MICRO)
 				.imageId(imageId)
 				.minCount(1)
@@ -81,9 +84,9 @@ public class EC2Methods implements AutoCloseable
 								.value(job.toString())
 								.build())
 						.build())
-				.build());
-
-		System.out.println("Manager created successfully");
+				.build()).instances().stream()
+				                   .map(Instance::instanceId)
+				                   .collect(Collectors.toList()) + " created successfully as " + job);
 	}
 
 	public void terminateInstancesByJob(Job job)

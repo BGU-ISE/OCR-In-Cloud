@@ -35,9 +35,9 @@ public class Main
 				managerToWorkersQueueUrl = sqsMethods.createQueue("managerToWorkersQueue"),
 				localAppToManagerQueueUrl = sqsMethods.createQueue("localAppToManagerQueue");
 
-//			new task🤠<manager to local app queue url>🤠<input/output bucket name>🤠<input file name>🤠<n>[🤠terminate] (local->manager)
-//			new image task🤠<manager to local app queue url>🤠<image url> (manager->worker)
-//			done OCR task🤠<manager to local app queue url>🤠<image url>🤠<text> (worker->manager)
+//			new task🤠<manager to local app queue name>🤠<input/output bucket name>🤠<input file name>🤠<n>[🤠terminate] (local->manager)
+//			new image task🤠<manager to local app queue name>🤠<image url> (manager->worker)
+//			done OCR task🤠<manager to local app queue name>🤠<image url>🤠<text> (worker->manager)
 //			done task (manager->local)
 
 		new Thread(() ->
@@ -52,19 +52,19 @@ public class Main
 							.map(message -> message.body().split(SQSMethods.getSPLITERATOR())/*gives string array with length 4*/)
 							.peek(strings ->
 							{
-								s3Methods.uploadLongToS3Bucket(strings[1]/*queue url*/,
+								s3Methods.uploadLongToS3Bucket(strings[1]/*queue name*/,
 										"numOfUndoneURLs",
-										s3Methods.readLongToS3Bucket(strings[1]/*queue url*/, "numOfUndoneURLs") - 1);
+										s3Methods.readLongToS3Bucket(strings[1]/*queue name*/, "numOfUndoneURLs") - 1);
 
-								s3Methods.uploadStringToS3Bucket(s3Methods.readObjectToString(strings[1]/*queue url*/, "outputBucket"),
+								s3Methods.uploadStringToS3Bucket(s3Methods.readObjectToString(strings[1]/*queue name*/, "outputBucket"),
 										strings[2]/*image url*/,
 										strings[3]/*text*/);
 							})
-							.filter(strings -> s3Methods.readLongToS3Bucket(strings[1]/*queue url*/, "numOfUndoneURLs") == 0L)
+							.filter(strings -> s3Methods.readLongToS3Bucket(strings[1]/*queue name*/, "numOfUndoneURLs") == 0L)
 							.forEach(strings ->
 							{
-								sqsMethods.sendSingleMessage(strings[1]/*queue url*/, "done task");
-								s3Methods.deleteBucketBatch(strings[1]/*queue url*/);
+								sqsMethods.sendSingleMessage(sqsMethods.getQueueUrl(strings[1]/*queue name*/).get(), "done task");
+								s3Methods.deleteBucketBatch(strings[1]/*queue name*/);
 								localAppsCounter.decrementAndGet();
 							});
 					sqsMethods.deleteMessageBatch(workerToManagerQueueUrl, messages);
@@ -93,15 +93,15 @@ public class Main
 
 						try (BufferedReader links = s3Methods.readObjectToBufferedReader(strings[2]/*input/output bucket name*/, strings[3]/*URLs file name*/))
 						{
-							s3Methods.createBucket(strings[1]/*queue url*/);
-							s3Methods.uploadStringToS3Bucket(strings[1]/*queue url*/,
+							s3Methods.createBucket(strings[1]/*queue name*/);
+							s3Methods.uploadStringToS3Bucket(strings[1]/*queue name*/,
 									"outputBucket",
 									strings[2]/*input/output bucket name*/);
-							s3Methods.uploadLongToS3Bucket(strings[1]/*queue url*/,
+							s3Methods.uploadLongToS3Bucket(strings[1]/*queue name*/,
 									"numOfUndoneURLs",
 									links.lines()
 											.peek(imageUrl -> sqsMethods.sendSingleMessage(managerToWorkersQueueUrl,
-													"new image task" + SQSMethods.getSPLITERATOR() + strings[1]/*queue url*/ + SQSMethods.getSPLITERATOR() + imageUrl))
+													"new image task" + SQSMethods.getSPLITERATOR() + strings[1]/*queue name*/ + SQSMethods.getSPLITERATOR() + imageUrl))
 											.count());
 							localAppsCounter.incrementAndGet();
 						}
