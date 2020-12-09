@@ -85,6 +85,7 @@ public class Main
 					.map(message -> message.body().split(SQSMethods.getSPLITERATOR())/*gives string array with length 4/5*/)
 					.forEach(strings ->
 					{
+						localAppsCounter.incrementAndGet();
 						box.isTermination = box.isTermination || (strings.length == 6 && strings[5].equals("terminate"));
 
 						ec2Methods.findOrCreateInstancesByJob(args[0]/*worker AMI*/, Integer.parseInt(strings[4]/*n*/), EC2Methods.Job.WORKER, """
@@ -93,7 +94,6 @@ public class Main
 
 						try (BufferedReader links = s3Methods.readObjectToBufferedReader(strings[2]/*input/output bucket name*/, strings[3]/*URLs file name*/))
 						{
-							localAppsCounter.incrementAndGet();
 							s3Methods.createBucket(strings[1]/*queue name*/);
 							s3Methods.uploadStringToS3Bucket(strings[1]/*queue name*/,
 									"outputBucket",
