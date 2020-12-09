@@ -61,7 +61,7 @@ public class EC2Methods implements AutoCloseable
 				.map(Reservation::instances)
 				.flatMap(Collection::stream)
 				.filter(instance -> instance.state().name().equals(InstanceStateName.RUNNING) ||
-				                    instance.state().name().equals(InstanceStateName.PENDING));
+						instance.state().name().equals(InstanceStateName.PENDING));
 	}
 
 	private void createInstanceByJob(String imageId, int maxCount, Job job, String userData)
@@ -93,8 +93,8 @@ public class EC2Methods implements AutoCloseable
 								.build())
 						.build())
 				.build()).instances().stream()
-				                   .map(Instance::instanceId)
-				                   .collect(Collectors.toList()) + " created successfully as " + job);
+				.map(Instance::instanceId)
+				.collect(Collectors.toList()) + " created successfully as " + job);
 	}
 
 	public void terminateInstancesByJob(Job job)

@@ -1,8 +1,8 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="Main worker" type="Application" factoryName="Application" singleton="false">
+  <configuration default="false" name="workerApp" type="Application" factoryName="Application" singleton="false">
     <option name="MAIN_CLASS_NAME" value="il.co.dsp211.Main" />
-    <module name="workersApp" />
-    <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/workersApp" />
+    <module name="workerApp" />
+    <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/workerApp" />
     <method v="2">
       <option name="Make" enabled="true" />
     </method>

@@ -93,6 +93,7 @@ public class Main
 
 						try (BufferedReader links = s3Methods.readObjectToBufferedReader(strings[2]/*input/output bucket name*/, strings[3]/*URLs file name*/))
 						{
+							localAppsCounter.incrementAndGet();
 							s3Methods.createBucket(strings[1]/*queue name*/);
 							s3Methods.uploadStringToS3Bucket(strings[1]/*queue name*/,
 									"outputBucket",
@@ -105,7 +106,6 @@ public class Main
 															.append(strings[1]/*queue name*/).append(SQSMethods.getSPLITERATOR())
 															.append(imageUrl).toString()))
 											.count());
-							localAppsCounter.incrementAndGet();
 						}
 						catch (IOException e)
 						{

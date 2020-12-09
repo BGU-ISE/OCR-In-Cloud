@@ -42,9 +42,9 @@ public class Main
 				//done OCR task🤠<manager to local app queue url>🤠<image url>🤠<text> (worker->manager)
 				sqsMethods.sendSingleMessage(workerToManagerQueueUrl,
 						"done OCR task" + SPLITERATOR +
-						split[1] + SPLITERATOR +
-						split[2] + SPLITERATOR +
-						outputOCR);
+								split[1] + SPLITERATOR +
+								split[2] + SPLITERATOR +
+								outputOCR);
 				// Delete message from the SQS queue because the task is finished
 				sqsMethods.deleteMessage(mangerToWorkerQueueUrl, message);
 			}
