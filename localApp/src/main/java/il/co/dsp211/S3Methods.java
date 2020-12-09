@@ -180,7 +180,7 @@ public class S3Methods implements AutoCloseable
 			}
 
 			@Override
-			public String next()
+			public CharSequence next()
 			{
 				final String url = iterator.next().key();
 				return new StringBuilder("\t\t")
@@ -193,8 +193,7 @@ public class S3Methods implements AutoCloseable
 														text(line))))
 										.flatMap(Function.identity())
 										.toArray(DomContent[]::new)
-						).renderFormatted())
-						.toString();
+						).renderFormatted());
 			}
 		};
 	}
