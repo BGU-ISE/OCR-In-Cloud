@@ -150,7 +150,7 @@ public class S3Methods implements AutoCloseable
 		return responseInputStream.asUtf8String();
 	}
 
-	public Iterator<CharSequence> getAllObjectsWith()
+	public Iterator<CharSequence> getAllObjectsWithIterator()
 	{
 		return new Iterator<>()
 		{
