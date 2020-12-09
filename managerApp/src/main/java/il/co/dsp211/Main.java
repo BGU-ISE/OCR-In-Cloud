@@ -99,7 +99,7 @@ public class Main
 									strings[2]/*input/output bucket name*/);
 							s3Methods.uploadLongToS3Bucket(strings[1]/*queue name*/,
 									"numOfUndoneURLs",
-									links.lines()
+									links.lines().parallel()
 											.peek(imageUrl -> sqsMethods.sendSingleMessage(managerToWorkersQueueUrl,
 													new StringBuilder("new image task").append(SQSMethods.getSPLITERATOR())
 															.append(strings[1]/*queue name*/).append(SQSMethods.getSPLITERATOR())
