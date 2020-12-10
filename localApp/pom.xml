@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0"
-		 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>il.co.dsp211</groupId>
@@ -13,6 +13,36 @@
 		<maven.compiler.source>15</maven.compiler.source>
 		<maven.compiler.target>15</maven.compiler.target>
 	</properties>
+
+	<developers>
+		<developer>
+			<id>ashr</id>
+			<name>Roy Ash</name>
+			<email>roy.ash456@gmail.com</email>
+			<url>https://www.linkedin.com/in/roy-ash-222351148</url>
+			<roles>
+				<role>architect</role>
+				<role>developer</role>
+			</roles>
+			<timezone>Asia/Jerusalem</timezone>
+			<properties>
+				<cellphone>+972546815181</cellphone>
+			</properties>
+		</developer>
+		<developer>
+			<name>Amit Binenfeld</name>
+			<email>amitbin20@gmail.com</email>
+			<url>https://www.linkedin.com/in/amit-binenfeld-09301a1b2</url>
+			<roles>
+				<role>architect</role>
+				<role>developer</role>
+			</roles>
+			<timezone>Asia/Jerusalem</timezone>
+			<properties>
+				<cellphone>+972502801199</cellphone>
+			</properties>
+		</developer>
+	</developers>
 
 	<dependencyManagement>
 		<dependencies>
