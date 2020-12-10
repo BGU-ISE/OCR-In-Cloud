@@ -1,8 +1,8 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="Main local" type="Application" factoryName="Application" singleton="false">
+  <configuration default="false" name="localApp" type="Application" factoryName="Application" singleton="false">
     <option name="MAIN_CLASS_NAME" value="il.co.dsp211.Main" />
     <module name="localApp" />
-    <option name="PROGRAM_PARAMETERS" value="text.images.txt text.images.output.html 18 terminate" />
+    <option name="PROGRAM_PARAMETERS" value="bigFile.txt bigFile1.output.html 4 terminate" />
     <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/localApp" />
     <method v="2">
       <option name="Make" enabled="true" />

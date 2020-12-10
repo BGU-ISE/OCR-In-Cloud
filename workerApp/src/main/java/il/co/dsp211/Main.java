@@ -41,19 +41,21 @@ public class Main
 				// Create message and send in to the manager using the SQS queue
 				//done OCR task🤠<manager to local app queue url>🤠<image url>🤠<text> (worker->manager)
 				sqsMethods.sendSingleMessage(workerToManagerQueueUrl,
-						"done OCR task" + SPLITERATOR +
-						split[1] + SPLITERATOR +
-						split[2] + SPLITERATOR +
-						outputOCR);
+						new StringBuilder("done OCR task").append(SPLITERATOR)
+								.append(split[1]).append(SPLITERATOR)
+								.append(split[2]).append(SPLITERATOR)
+								.append(outputOCR).toString());
 				// Delete message from the SQS queue because the task is finished
 				sqsMethods.deleteMessage(mangerToWorkerQueueUrl, message);
 			}
 		}
-		catch (QueueDoesNotExistException e) {
+		catch (QueueDoesNotExistException e)
+		{
 			e.printStackTrace();
 			System.out.println("WARNING: Queue Does not Exist.");
 		}
-		finally {
+		finally
+		{
 			System.out.println("Cleaning resources...");
 		}
 		System.out.println("Exiting...");

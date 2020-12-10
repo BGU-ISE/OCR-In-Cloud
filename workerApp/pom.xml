@@ -5,7 +5,7 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>il.co.dsp211</groupId>
-	<artifactId>workersApp</artifactId>
+	<artifactId>workerApp</artifactId>
 	<version>1.0-SNAPSHOT</version>
 
 	<properties>
@@ -13,6 +13,36 @@
 		<maven.compiler.source>15</maven.compiler.source>
 		<maven.compiler.target>15</maven.compiler.target>
 	</properties>
+
+	<developers>
+		<developer>
+			<id>ashr</id>
+			<name>Roy Ash</name>
+			<email>roy.ash456@gmail.com</email>
+			<url>https://www.linkedin.com/in/roy-ash-222351148</url>
+			<roles>
+				<role>architect</role>
+				<role>developer</role>
+			</roles>
+			<timezone>Asia/Jerusalem</timezone>
+			<properties>
+				<cellphone>+972546815181</cellphone>
+			</properties>
+		</developer>
+		<developer>
+			<name>Amit Binenfeld</name>
+			<email>amitbin20@gmail.com</email>
+			<url>https://www.linkedin.com/in/amit-binenfeld-09301a1b2</url>
+			<roles>
+				<role>architect</role>
+				<role>developer</role>
+			</roles>
+			<timezone>Asia/Jerusalem</timezone>
+			<properties>
+				<cellphone>+972502801199</cellphone>
+			</properties>
+		</developer>
+	</developers>
 
 	<dependencyManagement>
 		<dependencies>
@@ -47,18 +77,16 @@
 			<scope>test</scope>
 		</dependency>
 
-		<!-- https://mvnrepository.com/artifact/org.slf4j/slf4j-jdk14 -->
-<!--		<dependency>-->
-<!--			<groupId>org.slf4j</groupId>-->
-<!--			<artifactId>slf4j-jdk14</artifactId>-->
-<!--			<version>1.7.30</version>-->
-<!--		</dependency>-->
-
-		<!-- https://mvnrepository.com/artifact/net.sourceforge.tess4j/tess4j -->
 		<dependency>
 			<groupId>net.sourceforge.tess4j</groupId>
 			<artifactId>tess4j</artifactId>
 			<version>4.3.1</version>
+		</dependency>
+
+		<dependency>
+			<groupId>io.symphonia</groupId>
+			<artifactId>lambda-logging</artifactId>
+			<version>1.0.0</version>
 		</dependency>
 
 	</dependencies>

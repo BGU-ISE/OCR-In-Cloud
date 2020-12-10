@@ -5,6 +5,7 @@ import net.sourceforge.tess4j.TesseractException;
 
 import javax.imageio.ImageIO;
 import java.io.IOException;
+import java.net.HttpURLConnection;
 import java.net.URL;
 
 
@@ -20,8 +21,9 @@ public class ProcessOCR
 
 	public static String process(String url) throws TesseractException, IOException
 	{
+
 		// do OCR on image and save text
-		String recognizedText = tesseract.doOCR(ImageIO.read(new URL(url).openStream()));
+		String recognizedText = tesseract.doOCR(ImageIO.read(getRealImageURL(url).openStream()));
 
 		if (recognizedText.isEmpty())
 			return "ERROR! failed to recognize text from URL: " + url;
@@ -30,4 +32,14 @@ public class ProcessOCR
 		return recognizedText;
 	}
 
+	private static URL getRealImageURL(String url) throws IOException
+	{
+		URL urlObj = new URL(url);
+		HttpURLConnection con = (HttpURLConnection) urlObj.openConnection();
+		con.setInstanceFollowRedirects(false);
+		con.connect();
+		final String location = con.getHeaderField("Location");
+		con.disconnect();
+		return location == null ? urlObj : new URL(location);
+	}
 }

@@ -1,5 +1,5 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="Main manager" type="Application" factoryName="Application">
+  <configuration default="false" name="managerApp" type="Application" factoryName="Application">
     <option name="MAIN_CLASS_NAME" value="il.co.dsp211.Main" />
     <module name="managerApp" />
     <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/managerApp" />

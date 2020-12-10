@@ -70,16 +70,13 @@ public class SQSMethods implements AutoCloseable
 		System.out.println("Receiving messages...");
 
 		List<Message> messages;
-//		do
-//		{
+
 		messages = sqsClient.receiveMessage(ReceiveMessageRequest.builder()
 				.queueUrl(queueURL)
 				.maxNumberOfMessages(10)
 				.waitTimeSeconds(20)
 				.build())
 				.messages();
-//		} while (messages.isEmpty());
-
 
 		System.out.println("Received " + messages.size() + " messages: " + messages.stream()
 				.map(Message::body)

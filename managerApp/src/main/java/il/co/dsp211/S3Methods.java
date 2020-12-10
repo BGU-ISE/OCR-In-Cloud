@@ -1,5 +1,6 @@
 package il.co.dsp211;
 
+import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
@@ -7,11 +8,12 @@ import software.amazon.awssdk.services.s3.model.*;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.nio.ByteBuffer;
 import java.nio.file.Path;
+import java.util.stream.Stream;
 
 public class S3Methods implements AutoCloseable
 {
-	//	private final static Region region = Region.US_EAST_1;
 	private final S3Client s3Client = S3Client.builder()
 			.region(Region.US_EAST_1)
 			.build();
@@ -23,7 +25,6 @@ public class S3Methods implements AutoCloseable
 		s3Client.createBucket(CreateBucketRequest.builder()
 				.bucket(bucketName)
 				.createBucketConfiguration(CreateBucketConfiguration.builder()
-//						.locationConstraint(region.id())
 						.build())
 				.build());
 
@@ -55,17 +56,9 @@ public class S3Methods implements AutoCloseable
 			listObjectsV2Response = s3Client.listObjectsV2(listObjectsV2Request);
 			if (!listObjectsV2Response.contents().isEmpty())
 			{
-				s3Client.deleteObjects(DeleteObjectsRequest.builder()
-						.bucket(bucketName)
-						.delete(Delete.builder()
-								.quiet(true)
-								.objects(listObjectsV2Response.contents().stream()
-										.map(s3Object -> ObjectIdentifier.builder()
-												.key(s3Object.key())
-												.build())
-										.toArray(ObjectIdentifier[]::new))
-								.build())
-						.build());
+				deleteObjects(bucketName,
+						listObjectsV2Response.contents().stream()
+								.map(S3Object::key));
 
 				listObjectsV2Request = ListObjectsV2Request.builder()
 						.bucket(bucketName)
@@ -79,6 +72,30 @@ public class S3Methods implements AutoCloseable
 				.build());
 
 		System.out.println("Bucket \"" + bucketName + "\" was deleted successfully");
+	}
+
+	public void deleteObjects(String bucketName, String... names)
+	{
+		if (names.length == 0)
+			return;
+		if (names.length > 1000)
+			throw new IllegalArgumentException("There should be 1000 names or less, got " + names.length);
+
+		deleteObjects(bucketName, Stream.of(names));
+	}
+
+	private void deleteObjects(String bucketName, Stream<String> names)
+	{
+		s3Client.deleteObjects(DeleteObjectsRequest.builder()
+				.bucket(bucketName)
+				.delete(Delete.builder()
+						.quiet(true)
+						.objects(names.map(name -> ObjectIdentifier.builder()
+								.key(name)
+								.build())
+								.toArray(ObjectIdentifier[]::new))
+						.build())
+				.build());
 	}
 
 	public void uploadFileToS3Bucket(String bucketName, String pathString)
@@ -119,33 +136,51 @@ public class S3Methods implements AutoCloseable
 		System.out.println("Object downloaded and saved");
 	}
 
-	public BufferedReader readObjectToString(String bucketName, String key)
+	public BufferedReader readObjectToBufferedReader(String bucketName, String key)
 	{
 		System.out.println("Getting object " + key + "...");
 
-		//		System.out.println(responseInputStream.response().contentEncoding());
 		return new BufferedReader(new InputStreamReader(s3Client.getObject(GetObjectRequest.builder()
 				.bucket(bucketName)
 				.key(key)
 				.build())));
-//		return new String(responseInputStream.readAllBytes());
-//		catch (IOException e)
-//		{
-//			e.printStackTrace();
-//		}
-//		finally
-//		{
-//			System.out.println("Object received");
-//		}
+	}
 
-//		ResponseBytes<GetObjectResponse> responseInputStream = s3Client.getObjectAsBytes(GetObjectRequest.builder()
-//				.bucket(bucketName)
-//				.key(key)
-//				.build());
-//
-//		System.out.println("Object received");
-//		return responseInputStream.asString(Charset.defaultCharset());
+	public String readObjectToString(String bucketName, String key)
+	{
+		System.out.println("Getting object " + key + "...");
 
+		ResponseBytes<GetObjectResponse> responseInputStream = s3Client.getObjectAsBytes(GetObjectRequest.builder()
+				.bucket(bucketName)
+				.key(key)
+				.build());
+
+		System.out.println("Object received");
+		return responseInputStream.asUtf8String();
+	}
+
+	public void uploadLongToS3Bucket(String bucketName, String key, long value)
+	{
+		System.out.println("Upload " + value + " to S3 bucket \"" + bucketName + "\"...");
+
+		s3Client.putObject(PutObjectRequest.builder()
+				.bucket(bucketName)
+				.key(key)
+				.build(), RequestBody.fromByteBuffer(ByteBuffer.allocate(Long.BYTES).putLong(value)));
+
+		System.out.println("text was uploaded successfully");
+	}
+
+	public long readLongToS3Bucket(String bucketName, String key)
+	{
+		System.out.println("Reading long from S3 bucket \"" + bucketName + "\" and key " + key + "...");
+
+		return s3Client.getObjectAsBytes(GetObjectRequest.builder()
+				.bucket(bucketName)
+				.key(key)
+				.build())
+				.asByteBuffer()
+				.getLong();
 	}
 
 	@Override
