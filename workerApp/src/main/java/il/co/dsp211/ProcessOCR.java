@@ -9,15 +9,18 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 
 
-public class ProcessOCR {
+public class ProcessOCR
+{
 	private static final Tesseract tesseract = new Tesseract();
 
-	static {
+	static
+	{
 		tesseract.setDatapath("/usr/share/tesseract-ocr/4.00/tessdata");
 //		tesseract.setDatapath("C:\\Users\\amitb\\AppData\\Local\\Programs\\Tesseract-OCR\\tessdata");
 	}
 
-	public static String process(String url) throws TesseractException, IOException {
+	public static String process(String url) throws TesseractException, IOException
+	{
 
 		// do OCR on image and save text
 		String recognizedText = tesseract.doOCR(ImageIO.read(getRealImageURL(url).openStream()));
@@ -29,7 +32,8 @@ public class ProcessOCR {
 		return recognizedText;
 	}
 
-	private static URL getRealImageURL(String url) throws IOException {
+	private static URL getRealImageURL(String url) throws IOException
+	{
 		URL urlObj = new URL(url);
 		HttpURLConnection con = (HttpURLConnection) urlObj.openConnection();
 		con.setInstanceFollowRedirects(false);

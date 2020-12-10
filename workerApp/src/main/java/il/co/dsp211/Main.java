@@ -49,11 +49,13 @@ public class Main
 				sqsMethods.deleteMessage(mangerToWorkerQueueUrl, message);
 			}
 		}
-		catch (QueueDoesNotExistException e) {
+		catch (QueueDoesNotExistException e)
+		{
 			e.printStackTrace();
 			System.out.println("WARNING: Queue Does not Exist.");
 		}
-		finally {
+		finally
+		{
 			System.out.println("Cleaning resources...");
 		}
 		System.out.println("Exiting...");
