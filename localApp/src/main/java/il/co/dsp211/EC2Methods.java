@@ -30,19 +30,12 @@ public class EC2Methods implements AutoCloseable
 	public Map<String, List<InstanceStateName>> printInstancesState()
 	{
 		return ec2Client.describeInstances(DescribeInstancesRequest.builder()
-//                .instanceIds(response.instances().stream()
-//                        .map(Instance::instanceId)
-//                        .toArray(String[]::new))
 				.build())
 				.reservations().stream()
 				.map(Reservation::instances)
 				.flatMap(Collection::stream)
 				.collect(Collectors.groupingBy(Instance::instanceId, Collectors.mapping(instance -> instance.state().name(), Collectors.toList())));
 	}
-
-//	"""
-//	#!/bin/sh
-//	echo hello world > /home/ubuntu/hello_world.txt"""
 
 	public void findOrCreateInstancesByJob(String imageId, int maxCount, Job job, String userData)
 	{

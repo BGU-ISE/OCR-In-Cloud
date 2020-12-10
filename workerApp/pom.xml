@@ -77,18 +77,16 @@
 			<scope>test</scope>
 		</dependency>
 
-		<!-- https://mvnrepository.com/artifact/org.slf4j/slf4j-jdk14 -->
-		<!--		<dependency>-->
-		<!--			<groupId>org.slf4j</groupId>-->
-		<!--			<artifactId>slf4j-jdk14</artifactId>-->
-		<!--			<version>1.7.30</version>-->
-		<!--		</dependency>-->
-
-		<!-- https://mvnrepository.com/artifact/net.sourceforge.tess4j/tess4j -->
 		<dependency>
 			<groupId>net.sourceforge.tess4j</groupId>
 			<artifactId>tess4j</artifactId>
 			<version>4.3.1</version>
+		</dependency>
+
+		<dependency>
+			<groupId>io.symphonia</groupId>
+			<artifactId>lambda-logging</artifactId>
+			<version>1.0.0</version>
 		</dependency>
 
 	</dependencies>

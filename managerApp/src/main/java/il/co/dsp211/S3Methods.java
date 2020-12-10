@@ -14,7 +14,6 @@ import java.util.stream.Stream;
 
 public class S3Methods implements AutoCloseable
 {
-	//	private final static Region region = Region.US_EAST_1;
 	private final S3Client s3Client = S3Client.builder()
 			.region(Region.US_EAST_1)
 			.build();
@@ -26,7 +25,6 @@ public class S3Methods implements AutoCloseable
 		s3Client.createBucket(CreateBucketRequest.builder()
 				.bucket(bucketName)
 				.createBucketConfiguration(CreateBucketConfiguration.builder()
-//						.locationConstraint(region.id())
 						.build())
 				.build());
 
@@ -142,7 +140,6 @@ public class S3Methods implements AutoCloseable
 	{
 		System.out.println("Getting object " + key + "...");
 
-		//		System.out.println(responseInputStream.response().contentEncoding());
 		return new BufferedReader(new InputStreamReader(s3Client.getObject(GetObjectRequest.builder()
 				.bucket(bucketName)
 				.key(key)

@@ -21,7 +21,6 @@ public class S3Methods implements AutoCloseable
 		j2html.Config.indenter = (level, text) -> String.join("", Collections.nCopies(level + 2, "\t")) + text;
 	}
 
-	//	private final static Region region = Region.US_EAST_1;
 	private final S3Client s3Client = S3Client.builder()
 			.region(Region.US_EAST_1)
 			.build();
@@ -39,7 +38,6 @@ public class S3Methods implements AutoCloseable
 		s3Client.createBucket(CreateBucketRequest.builder()
 				.bucket(bucketName)
 				.createBucketConfiguration(CreateBucketConfiguration.builder()
-//						.locationConstraint(region.id())
 						.build())
 				.build());
 
@@ -127,19 +125,6 @@ public class S3Methods implements AutoCloseable
 	public String readObjectToString(String key)
 	{
 		System.out.println("Getting object " + key + "...");
-
-//		try (ResponseInputStream<GetObjectResponse> responseInputStream = s3Client.getObject(GetObjectRequest.builder()
-//				.bucket(bucketName)
-//				.key(key)
-//				.build()))
-//		{
-////			System.out.println(responseInputStream.response().contentEncoding());
-//			return new String(responseInputStream.readAllBytes());
-//		}
-//		finally
-//		{
-//			System.out.println("Object received");
-//		}
 
 		ResponseBytes<GetObjectResponse> responseInputStream = s3Client.getObjectAsBytes(GetObjectRequest.builder()
 				.bucket(bucketName)
