@@ -1,13 +1,11 @@
 # dsp211-assignment-1
 In this assignment we will code a real-world application to distributively apply OCR algorithms on images. Then we will display each image with its recognized text on a webpage.
-
 ## How to run our project
 1. Create AWS role with the following:
    1. EC2FullAccess
    2. S3FullAccess
    3. SQSFullAccess
    4. AdministratorAccess
-   
 2. You need to create a file `localApp/src/main/resources/secure_info.properties`
 3. The content of the file should be
     ```properties
@@ -41,5 +39,5 @@ Only the Manager uses 2 thread:
 - thread `main`: responsible for receiving messages (up to 10 at a time) from local apps and sending tasks to the workers
 - thread `WorkerToManager`: responsible for receiving messages (up to 10 at a time) and upload their cotent to the proper S3 bucket of the relevant local app
 ## Technical stuff
-- We used Ubuntu 20.04 based AMI, and instance tipe of T2-micro
+- We used Ubuntu 20.04 based AMI, and instance type of T2-micro
 - when used with 10 Workers and 24 links it takes about 3 minutes (including manager and workers startup time)
