@@ -63,7 +63,7 @@ public class Main
 							.filter(strings -> s3Methods.readLongToS3Bucket(strings[1]/*queue name*/, "numOfUndoneURLs") == 0L)
 							.forEach(strings ->
 							{
-								sqsMethods.sendSingleMessage(sqsMethods.getQueueUrl(strings[1]/*queue name*/).get(), "done task");
+								sqsMethods.getQueueUrl(strings[1]/*queue name*/).ifPresent(queueUrl -> sqsMethods.sendSingleMessage(queueUrl, "done task"));
 								s3Methods.deleteBucketBatch(strings[1]/*queue name*/);
 								localAppsCounter.decrementAndGet();
 							});
