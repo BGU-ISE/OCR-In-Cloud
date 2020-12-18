@@ -22,7 +22,7 @@ public class Main
 			{
 				System.out.println("Get SQS message...");
 				Message message = sqsMethods.receiveMessage(mangerToWorkerQueueUrl);
-				//new image task🤠<manager to local app queue url>🤠<image url> (manager->worker)
+				//new image task🤠<manager to local app queue name>🤠<image url> (manager->worker)
 				String[] split = message.body().split(SPLITERATOR);
 				// Assumption: The message contains only the img url
 				// Apply OCR on image
