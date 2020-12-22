@@ -92,12 +92,12 @@ public class Main
 						                                                                                                                       #!/bin/sh
 						                                                                                                                       java -jar /home/ubuntu/workerApp.jar""", args[1], args[2], args[3]);
 
+						s3Methods.createBucket(strings[1]/*queue name*/);
+						s3Methods.uploadStringToS3Bucket(strings[1]/*queue name*/,
+								"outputBucket",
+								strings[2]/*input/output bucket name*/);
 						try (BufferedReader links = s3Methods.readObjectToBufferedReader(strings[2]/*input/output bucket name*/, strings[3]/*URLs file name*/))
 						{
-							s3Methods.createBucket(strings[1]/*queue name*/);
-							s3Methods.uploadStringToS3Bucket(strings[1]/*queue name*/,
-									"outputBucket",
-									strings[2]/*input/output bucket name*/);
 							s3Methods.uploadLongToS3Bucket(strings[1]/*queue name*/,
 									"numOfUndoneURLs",
 									links.lines().parallel()
