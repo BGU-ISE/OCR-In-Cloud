@@ -1,4 +1,4 @@
-# dsp211-assignment-1
+# OCR In Cloud
 In this assignment we will code a real-world application to distributively apply OCR algorithms on images. Then we will display each image with its recognized text on a webpage.
 ## How to run our project
 1. Create AWS role with the following:
