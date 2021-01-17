@@ -14,8 +14,6 @@ public class Main
 	 *     <li>args[2]->number of workers needed</li>
 	 *     <li>args[3]->(optional) must be equals to "terminate"</li>
 	 * </ul>
-	 *
-	 * @param args
 	 */
 	public static void main(String... args) throws IOException
 	{
@@ -32,9 +30,9 @@ public class Main
 					managerToLocalAppQueueName = "manager-to-local-app-queue" + System.currentTimeMillis(),
 					localAppToManagerQueueUrl = sqsMethods.createQueue("localAppToManagerQueue"),
 					managerToLocalAppQueueUrl = sqsMethods.createQueue(managerToLocalAppQueueName);
-			ec2Methods.findOrCreateInstancesByJob(ec2Methods.getProperties().getProperty("ami")/*TODO:<manager AMI>*/, 1, EC2Methods.Job.MANAGER, """
+			ec2Methods.findOrCreateInstancesByJob(ec2Methods.getProperties().getProperty("ami"), 1, EC2Methods.Job.MANAGER, """
 			                                                                                                                #!/bin/sh
-			                                                                                                                java -jar /home/ubuntu/managerApp.jar""" + " " + ec2Methods.getProperties().getProperty("ami")/*TODO: <workers AMI>*/ + " " + ec2Methods.getProperties().getProperty("arn") + " " + ec2Methods.getProperties().getProperty("keyName") + " " + ec2Methods.getProperties().getProperty("securityGroupIds"));
+			                                                                                                                java -jar /home/ubuntu/managerApp.jar""" + " " + ec2Methods.getProperties().getProperty("ami") + " " + ec2Methods.getProperties().getProperty("arn") + " " + ec2Methods.getProperties().getProperty("keyName") + " " + ec2Methods.getProperties().getProperty("securityGroupIds"));
 			s3Methods.createBucket();
 //			new task🤠<manager to local app queue url>🤠<input/output bucket name>🤠<input file name>🤠<n>[🤠terminate]
 			final StringBuilder stringBuilder = new StringBuilder("new task").append(SQSMethods.getSPLITERATOR())
